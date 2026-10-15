@@ -10,7 +10,8 @@
     "build": "npm run validate && tsc --noEmit && vite build",
     "preview": "vite preview",
     "photos:init": "tsx scripts/init-photo-folders.ts",
-    "figures": "tsx scripts/build-figures.ts"
+    "figures": "tsx scripts/build-figures.ts",
+    "bake": "tsx scripts/bake/run.ts"
   },
   "dependencies": {
     "three": "^0.170.0"

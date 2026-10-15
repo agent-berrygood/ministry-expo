@@ -84,13 +84,20 @@ if (nodeById.has("entrance")) {
 const joy = nodeById.get("n-booth-joy-sharing");
 if (!joy?.links.includes("n-booth-warm-meal")) errors.push("나눔마당 규칙: joy-sharing과 warm-meal 부스 노드가 직접 연결되어야 함");
 
-// 인물 자리 (PRD 4.9, 4.10): ID 중복 없음, 이동 지점을 가리지 않음
+// 인물 자리 (PRD 4.9, 4.10): ID 중복 없음, 부스 참조 확인, 좌표 자리는 이동 지점을 가리지 않음
 if (!layout.figures?.entrance) errors.push("layout.figures.entrance 없음");
-const spots = layout.figures?.hidden ?? [];
-dupes(spots.map((s) => s.id), "숨은 목회자 자리");
+const spots = layout.figures?.clergy ?? [];
+dupes(spots.map((s) => s.id), "교역자 자리");
 for (const s of spots) {
-  const near = layout.nodes.find((n) => Math.hypot(n.x - s.x, n.z - s.z) < 1.0);
-  if (near) errors.push(`숨은 목회자 자리 ${s.id}: 이동 지점 ${near.id}와 너무 가까움 (1 m 미만)`);
+  if (!ID.test(s.id)) errors.push(`교역자 자리 ID 형식 오류(kebab-case): ${s.id}`);
+  if (s.booth) {
+    if (!boothIds.has(s.booth)) errors.push(`교역자 자리 ${s.id}: 알 수 없는 부스 ${s.booth}`);
+  } else if (s.x === undefined || s.z === undefined) {
+    errors.push(`교역자 자리 ${s.id}: booth 또는 x·z가 필요함`);
+  } else {
+    const near = layout.nodes.find((n) => Math.hypot(n.x - s.x!, n.z - s.z!) < 1.0);
+    if (near) errors.push(`교역자 자리 ${s.id}: 이동 지점 ${near.id}와 너무 가까움 (1 m 미만)`);
+  }
 }
 
 // 개인정보 의심 패턴 (경고)

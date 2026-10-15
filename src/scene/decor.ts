@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { BOOTH, COLORS, DECOR } from "../config";
 import type { ExpoIndex } from "../data/load";
 import type { NavNode } from "../data/types";
-import { MeshBuilder, deg, vertexColorMaterial, glowMaterial } from "./geometry";
+import { MeshBuilder, deg, glowMaterial, markBake, vertexColorMaterial } from "./geometry";
 import { blobShadowTexture } from "./textures";
 
 // 분위기 연출용 장식. 모두 정점 색으로 합쳐서 몇 개의 드로우콜로 끝낸다 (PRD 8장).
@@ -46,6 +46,7 @@ export class ShadowBlobs {
         depthWrite: false,
       });
       const mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), mat, list.length);
+      mesh.name = "shadow-blobs";
       list.forEach((m, i) => mesh.setMatrixAt(i, m));
       mesh.renderOrder = 1;
       scene.add(mesh);
@@ -136,9 +137,10 @@ export function addOverhead(scene: THREE.Scene, nodes: NavNode[]): void {
 
   const frameMesh = frame.build(vertexColorMaterial({ roughness: 0.45, metalness: 0.65 }));
   frameMesh.castShadow = true;
+  // 깃발은 삼각형 수백 개라 빛 지도에 넣지 않는다 (구운 화면에서는 색만 칠한다)
   const flagMesh = flags.build(vertexColorMaterial({ side: THREE.DoubleSide, roughness: 0.95 }));
   const bulbMesh = bulbs.build(glowMaterial());
-  scene.add(frameMesh, flagMesh, bulbMesh);
+  scene.add(markBake(frameMesh, "atlas", "overhead-frame"), flagMesh, bulbMesh);
 }
 
 /** 사람 실루엣. 이동 지점과 화살표 자리는 피해서 세운다. */
@@ -208,15 +210,14 @@ export function addPeople(scene: THREE.Scene, index: ExpoIndex, blobs: ShadowBlo
     }
   }
 
-  const mesh = b.build(vertexColorMaterial({ roughness: 0.9 }));
-  mesh.castShadow = true;
-  scene.add(mesh);
+  scene.add(markBake(b.build(vertexColorMaterial({ roughness: 0.9 })), "atlas", "people"));
 }
 
-/** 중앙 광장: 네 모서리 나무 화단 + 벤치 */
+/** 중앙 광장: 세 모서리 나무 화단 + 벤치 */
 export function addPlazaFurniture(scene: THREE.Scene, cx: number, cz: number, blobs: ShadowBlobs): void {
   const b = new MeshBuilder();
-  for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+  // 남동쪽 자리는 교역자 원형 안내석(FIGURE.plazaDesk)이 쓴다
+  for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1]]) {
     const x = cx + sx * 4.6;
     const z = cz + sz * 4.6;
     b.use("stone").cylinder(1.1, 1.2, 0.55, x, 0.28, z, 0xd9c7a8, 20);
@@ -240,10 +241,7 @@ export function addPlazaFurniture(scene: THREE.Scene, cx: number, cz: number, bl
       b.box(0.08, 0.45, 0.4, lx, 0.22, lz, 0x4b4038, rot + Math.PI / 2);
     }
   }
-  const mesh = b.build(vertexColorMaterial());
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  scene.add(mesh);
+  scene.add(markBake(b.build(vertexColorMaterial()), "atlas", "plaza-furniture"));
 }
 
 /** 입구 게이트 기둥에 매단 풍선 다발 */

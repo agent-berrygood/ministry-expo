@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { BOOTH, COLORS, STEAM } from "../config";
 import type { Booth, BoothPlacement, BoothProp, Zone } from "../data/types";
-import { MeshBuilder, deg, texturedPlane, vertexColorMaterial, glowMaterial } from "./geometry";
+import { MeshBuilder, deg, glowMaterial, markBake, texturedPlane, vertexColorMaterial } from "./geometry";
 import { posterTexture, shade, signTexture, softDotTexture, stripeTexture, tint, woodSignTexture } from "./textures";
 
 // 부스 로컬 좌표: 원점이 바닥 중앙, 정면이 +z (PRD 3.3, 4.2)
@@ -11,7 +11,8 @@ export interface BoothObject {
   group: THREE.Group;
   pickables: THREE.Object3D[];
   setHover(on: boolean): void;
-  update?(dt: number, camera: THREE.Vector3): void;
+  /** 움직이는 것이 있어 다시 그려야 하면 true */
+  update?(dt: number, camera: THREE.Vector3): boolean;
 }
 
 const PROP_ICON: Record<BoothProp, string> = {
@@ -89,14 +90,13 @@ function createStandard(booth: Booth, zone: Zone): BoothObject {
   b.sphere(0.34, px, 0.86, d / 2 - 0.5, 0x6aa84f);
   b.sphere(0.24, px + 0.15, 1.05, d / 2 - 0.42, 0x7fb069);
   // 입구 매트
-  b.use("fabric").box(1.6, 0.012, 0.6, 0, 0.006, d / 2 + 0.45, deep);
+  // 존 바닥(윗면 0.0135 m)보다 높게 깔아야 굽기에서 가려진 면으로 계산되지 않는다
+  b.use("fabric").box(1.6, 0.012, 0.6, 0, 0.024, d / 2 + 0.45, deep);
   b.use("paint");
   addPropModel(b, booth.prop, zone.color, d);
 
   const bodyMat = vertexColorMaterial();
-  const body = b.build(bodyMat);
-  body.castShadow = true;
-  body.receiveShadow = true;
+  const body = markBake(b.build(bodyMat), "atlas", `booth-${booth.id}`);
   group.add(body);
 
   const sign = texturedPlane(signTexture(booth.name, zone.color), w * 0.95, 0.52);
@@ -120,37 +120,39 @@ function createStandard(booth: Booth, zone: Zone): BoothObject {
 function addPropModel(b: MeshBuilder, prop: BoothProp, color: string, d: number) {
   const y = 1.11;
   const z = d / 2 - 0.8;
+  // 데스크 양쪽 뒤에 교역자(왼쪽)·부장(오른쪽)이 서므로 소품은 가운데에 둔다
+  const PX = 0.15;
   switch (prop) {
     case "book":
-      b.box(0.36, 0.06, 0.26, -0.45, y + 0.03, z, 0xe85d5d);
-      b.box(0.34, 0.06, 0.25, -0.45, y + 0.09, z, 0x4a90d9);
-      b.box(0.32, 0.06, 0.24, -0.45, y + 0.15, z, 0xf2c14e);
+      b.box(0.36, 0.06, 0.26, PX, y + 0.03, z, 0xe85d5d);
+      b.box(0.34, 0.06, 0.25, PX, y + 0.09, z, 0x4a90d9);
+      b.box(0.32, 0.06, 0.24, PX, y + 0.15, z, 0xf2c14e);
       break;
     case "globe":
-      b.cylinder(0.04, 0.1, 0.12, -0.45, y + 0.06, z, 0x8b6b4a);
-      b.sphere(0.17, -0.45, y + 0.3, z, 0x3d9be9);
+      b.cylinder(0.04, 0.1, 0.12, PX, y + 0.06, z, 0x8b6b4a);
+      b.sphere(0.17, PX, y + 0.3, z, 0x3d9be9);
       break;
     case "music":
-      b.box(0.3, 0.02, 0.22, -0.45, y + 0.01, z, 0xffffff);
-      b.cylinder(0.015, 0.015, 0.5, 0.45, y + 0.25, z, 0x333333, 6);
-      b.box(0.34, 0.24, 0.02, 0.45, y + 0.5, z, 0x333333);
+      b.box(0.3, 0.02, 0.22, PX, y + 0.01, z, 0xffffff);
+      b.cylinder(0.015, 0.015, 0.5, PX + 0.25, y + 0.25, z, 0x333333, 6);
+      b.box(0.34, 0.24, 0.02, PX + 0.25, y + 0.5, z, 0x333333);
       break;
     case "gift":
-      b.box(0.3, 0.24, 0.3, -0.45, y + 0.12, z, color);
-      b.box(0.31, 0.25, 0.06, -0.45, y + 0.12, z, 0xffffff);
+      b.box(0.3, 0.24, 0.3, PX, y + 0.12, z, color);
+      b.box(0.31, 0.25, 0.06, PX, y + 0.12, z, 0xffffff);
       break;
     case "car":
-      b.box(0.42, 0.14, 0.2, -0.45, y + 0.1, z, color);
-      b.box(0.26, 0.1, 0.18, -0.48, y + 0.21, z, 0xdde8f0);
+      b.box(0.42, 0.14, 0.2, PX, y + 0.1, z, color);
+      b.box(0.26, 0.1, 0.18, PX - 0.03, y + 0.21, z, 0xdde8f0);
       break;
     case "heart":
     case "pray":
     case "cross":
-      b.cylinder(0.08, 0.08, 0.16, -0.45, y + 0.08, z, 0xfff1c9);
-      b.sphere(0.04, -0.45, y + 0.2, z, 0xffc94d);
+      b.cylinder(0.08, 0.08, 0.16, PX, y + 0.08, z, 0xfff1c9);
+      b.sphere(0.04, PX, y + 0.2, z, 0xffc94d);
       break;
     case "meal":
-      b.cylinder(0.14, 0.1, 0.1, -0.45, y + 0.05, z, 0xffffff);
+      b.cylinder(0.14, 0.1, 0.1, PX, y + 0.05, z, 0xffffff);
       break;
     case "none":
       break;
@@ -232,9 +234,7 @@ function createStall(booth: Booth, zone: Zone): BoothObject {
   b.use("fabric").box(w + 1, 0.02, 3.0, 0, 0.03, d / 2 + 1.6, 0xf2d7b0);
 
   const bodyMat = vertexColorMaterial();
-  const body = b.build(bodyMat);
-  body.castShadow = true;
-  body.receiveShadow = true;
+  const body = markBake(b.build(bodyMat), "atlas", `booth-${booth.id}`);
   group.add(body);
 
   // 줄무늬 천막
@@ -243,11 +243,10 @@ function createStall(booth: Booth, zone: Zone): BoothObject {
   const awning = new THREE.Mesh(new THREE.PlaneGeometry(w + 0.6, d + 0.6), awningMat);
   awning.rotation.x = -Math.PI / 2 + 0.22;
   awning.position.set(0, h + 0.38, 0);
-  awning.castShadow = true;
-  group.add(awning);
+  group.add(markBake(awning, "atlas", `booth-${booth.id}-awning`));
   const valance = new THREE.Mesh(new THREE.PlaneGeometry(w + 0.6, 0.4), awningMat);
   valance.position.set(0, h - 0.08, d / 2 + 0.36);
-  group.add(valance);
+  group.add(markBake(valance, "atlas", `booth-${booth.id}-valance`));
 
   // 나무 간판
   const sign = texturedPlane(woodSignTexture(booth.name, isMeal ? "따뜻한 밥 한 끼, 같이 먹어요" : "기쁨을 함께 나눠요"), 3.8, 1.2);
@@ -323,7 +322,7 @@ function createSteam(origin: THREE.Vector3, spread: number) {
     points,
     update(dt: number, camera: THREE.Vector3) {
       points.getWorldPosition(world);
-      if (world.distanceTo(camera) > STEAM.activeDistance) return;
+      if (world.distanceTo(camera) > STEAM.activeDistance) return false;
       for (let i = 0; i < count; i++) {
         life[i] += dt * (0.35 + seeds[i] * 0.25);
         if (life[i] > 1) {
@@ -332,6 +331,7 @@ function createSteam(origin: THREE.Vector3, spread: number) {
         }
       }
       place();
+      return true;
     },
   };
 }

@@ -1,4 +1,4 @@
-// 사진 폴더 만들기 (PRD 4.6, 4.8): 부스별 폴더와 입구·숨은 목회자 폴더를 만든다. 이미 있으면 건너뛴다.
+// 사진 폴더 만들기 (PRD 4.6, 4.8): 부스별 폴더와 입구·교역자 폴더를 만든다. 이미 있으면 건너뛴다.
 import fs from "node:fs";
 import path from "node:path";
 import type { Booth } from "../src/data/types";
@@ -8,7 +8,7 @@ const photos = path.join(root, "photos");
 const booths = JSON.parse(fs.readFileSync(path.join(root, "public/data/booths.json"), "utf8")) as Booth[];
 
 const existing = fs.existsSync(photos) ? fs.readdirSync(photos) : [];
-const dirs = [...booths.map((b) => `${b.id}_${b.name}`), "_entrance", "_hidden"];
+const dirs = [...booths.map((b) => `${b.id}_${b.name}`), "_entrance", "_clergy"];
 let made = 0;
 for (const dir of dirs) {
   const id = dir.split("_")[0];

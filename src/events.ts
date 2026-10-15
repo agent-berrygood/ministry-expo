@@ -9,7 +9,7 @@ export type Route =
 export interface EventMap {
   "booth:select": { id: string };
   "booth:hover": { id: string | null };
-  /** 숨은 목회자를 눌렀다 (PRD 4.10) */
+  /** 교역자 사진을 눌렀다 (PRD 4.10) */
   "figure:click": { id: string };
   "nav:goto": { nodeId: string };
   "nav:arrive": { nodeId: string };

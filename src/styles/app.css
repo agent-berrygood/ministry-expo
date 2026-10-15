@@ -176,35 +176,12 @@ button {
   opacity: 0;
 }
 
-/* ---------- 숨은 목회자 찾기 ---------- */
-
-.hunt-chip {
-  position: absolute;
-  top: calc(max(var(--space-3), env(safe-area-inset-top)) + 64px);
-  left: var(--space-3);
-  min-height: 36px;
-  padding: 0 var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--glass);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: var(--shadow);
-  font-size: var(--fs-s);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.hunt-chip.is-done {
-  background: var(--accent);
-  color: var(--accent-ink);
-  border-color: transparent;
-}
+/* ---------- 알림 ---------- */
 
 .toast {
   position: absolute;
   left: 50%;
-  top: calc(max(var(--space-3), env(safe-area-inset-top)) + 110px);
+  top: calc(max(var(--space-3), env(safe-area-inset-top)) + 72px);
   transform: translate(-50%, -8px);
   max-width: calc(100% - 2 * var(--space-4));
   padding: var(--space-3) var(--space-4);

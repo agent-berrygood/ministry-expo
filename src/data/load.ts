@@ -12,7 +12,7 @@ export async function loadExpoData(): Promise<ExpoData> {
     getJson<Booth[]>("booths.json"),
     getJson<Layout>("layout.json"),
     // 생성물이라 없을 수 있다. 없으면 모든 자리에 실루엣이 선다.
-    getJson<FigureManifest>("figures.json").catch((): FigureManifest => ({ staff: {}, entrance: null, hidden: [] })),
+    getJson<FigureManifest>("figures.json").catch((): FigureManifest => ({ staff: {}, entrance: null, clergy: {} })),
   ]);
   zones.sort((a, b) => a.order - b.order);
   return { zones, booths, layout, figures };

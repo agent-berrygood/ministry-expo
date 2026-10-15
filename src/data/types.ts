@@ -65,11 +65,17 @@ export interface NavNode {
   booth?: string;
 }
 
-/** 인물이 서는 자리 (PRD 4.8) */
+/**
+ * 교역자가 서는 자리 (PRD 4.10). booth가 있으면 그 부스 데스크(조리대) 뒤, 없으면 x·z 좌표.
+ * photos/_clergy/{id}_{이름 직분}.png 사진이 이 자리에 선다.
+ */
 export interface FigureSpot {
   id: string;
-  x: number;
-  z: number;
+  booth?: string;
+  /** booth 기준 데스크 뒤 가로 위치(부스 로컬 x, m) */
+  offset?: number;
+  x?: number;
+  z?: number;
 }
 
 export interface Layout {
@@ -77,8 +83,7 @@ export interface Layout {
   nodes: NavNode[];
   figures: {
     entrance: { x: number; z: number };
-    /** 숨은 목회자 자리. photos/_hidden/의 사진이 파일명 순서대로 앉는다 */
-    hidden: FigureSpot[];
+    clergy: FigureSpot[];
   };
 }
 
@@ -93,7 +98,8 @@ export interface FigureImage {
 export interface FigureManifest {
   staff: Record<string, FigureImage>;
   entrance: FigureImage | null;
-  hidden: FigureImage[];
+  /** 자리 ID → 사진 */
+  clergy: Record<string, FigureImage>;
 }
 
 export interface ExpoData {

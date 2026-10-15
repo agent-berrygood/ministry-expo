@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { POST, SURFACE } from "../config";
+import { QUALITY, SURFACE } from "../config";
 import { surfaceAtlasTexture } from "./textures";
 
 // 드로우콜을 줄이려고(PRD 8장) 도형은 정점 색으로 칠해서 하나로 합친다.
@@ -119,13 +119,8 @@ export function at(x: number, y: number, z: number, rotY = 0): THREE.Matrix4 {
 
 let atlas: THREE.Texture | null = null;
 
-/**
- * 정점 색 × 질감 아틀라스 재질.
- * 아틀라스의 칸(surfTile) 안에서 UV를 반복시키려고 셰이더의 map 샘플링만 바꾼다.
- */
-export function vertexColorMaterial(opts: THREE.MeshStandardMaterialParameters = {}): THREE.MeshStandardMaterial {
-  atlas ??= surfaceAtlasTexture();
-  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.82, metalness: 0, map: atlas, ...opts });
+/** 질감 아틀라스의 칸(surfTile) 안에서 UV를 반복시키려고 셰이더의 map 샘플링만 바꾼다 */
+function applySurfacePatch<T extends THREE.Material>(mat: T): T {
   mat.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader
       .replace("#include <common>", "#include <common>\nattribute vec2 surfTile;\nvarying vec2 vSurfTile;\nvarying vec2 vSurfUv;")
@@ -142,15 +137,38 @@ export function vertexColorMaterial(opts: THREE.MeshStandardMaterialParameters =
         #endif`,
       );
   };
-  mat.customProgramCacheKey = () => "surface-atlas";
+  mat.customProgramCacheKey = () => `surface-atlas-${mat.type}`;
+  mat.userData.surface = true;
   return mat;
 }
 
-/** 전구처럼 스스로 빛나는 재질. 밝기를 1 이상으로 올려 데스크톱에서 블룸이 걸리게 한다. */
+/** 정점 색 × 질감 아틀라스 재질 (실시간 조명) */
+export function vertexColorMaterial(opts: THREE.MeshStandardMaterialParameters = {}): THREE.MeshStandardMaterial {
+  atlas ??= surfaceAtlasTexture();
+  return applySurfacePatch(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.82, metalness: 0, map: atlas, ...opts }));
+}
+
+/** 정점 색 × 질감 아틀라스 × 구운 빛 지도 재질 (조명 계산 없음, PRD 7.4) */
+export function bakedSurfaceMaterial(opts: THREE.MeshBasicMaterialParameters = {}): THREE.MeshBasicMaterial {
+  atlas ??= surfaceAtlasTexture();
+  return applySurfacePatch(new THREE.MeshBasicMaterial({ vertexColors: true, map: atlas, ...opts }));
+}
+
+/** 전구처럼 스스로 빛나는 재질. 밝기를 1 이상으로 올려 톤 매핑 뒤에도 환하게 보이게 한다. */
 export function glowMaterial(): THREE.MeshBasicMaterial {
   const m = new THREE.MeshBasicMaterial({ vertexColors: true });
-  m.color.setScalar(POST.emissiveBoost);
+  m.color.setScalar(QUALITY.emissiveBoost);
   return m;
+}
+
+/**
+ * 빛 굽기 대상 표시 (PRD 7.4). flat은 바닥에 깔린 평평한 것(바닥 빛 지도, 위에서 내려다본 좌표로 매핑),
+ * atlas는 서 있는 것(Blender가 펼친 좌표로 아틀라스 빛 지도). name은 굽기 결과와 짝을 맞추는 키라 바꾸면 다시 구워야 한다.
+ */
+export function markBake<T extends THREE.Object3D>(obj: T, kind: "flat" | "atlas", name: string): T {
+  obj.userData.bake = kind;
+  obj.userData.bakeName = name;
+  return obj;
 }
 
 /** 글자 텍스처를 붙인 평면 */

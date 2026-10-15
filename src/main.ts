@@ -9,7 +9,7 @@ import { ensureFonts } from "./scene/textures";
 import { World } from "./scene/world";
 import { h } from "./ui/dom";
 import { Hud } from "./ui/hud";
-import { Hunt } from "./ui/hunt";
+import { Toast } from "./ui/toast";
 import { ListView } from "./ui/listView";
 import { Minimap } from "./ui/minimap";
 import { BoothPanel } from "./ui/panel";
@@ -53,11 +53,12 @@ async function main(): Promise<void> {
   const nav = new NavController(world, graph, "entrance");
   new Hud(ui, index);
   new Minimap(ui, index);
-  new Hunt(
-    ui,
-    world.figures.hiddenIds.map((id) => ({ id, caption: world.figures.captionOf(id) })),
-    (id) => world.figures.celebrate(id),
-  );
+  // 교역자를 누르면 이름을 살짝 보여 준다 (PRD 4.10)
+  const toast = new Toast(ui);
+  events.on("figure:click", ({ id }) => {
+    const name = world.figures.captionOf(id);
+    if (name) toast.say(`${name}님이에요 👋`);
+  });
 
   const boothNode = (id: string) => index.boothNode.get(id);
 
@@ -113,12 +114,15 @@ async function main(): Promise<void> {
     const step = (seconds = 1) => {
       for (let t = 0; t < seconds; t += 1 / 30) world.frame(1 / 30);
     };
-    Object.assign(window, { __expo: { world, nav, graph, step } });
+    // 굽기용 장면 내보내기: 주소에 ?nobake를 붙여 연 뒤 콘솔에서 await __expo.exportBake()
+    const exportBake = () => import("./dev/bakeExport").then((m) => m.exportBakeScene(world.scene));
+    Object.assign(window, { __expo: { world, nav, graph, step, exportBake } });
   }
 
   startRouter();
   apply(currentRoute(), true);
   world.start();
+  await world.ready;
   setTimeout(() => loading.classList.add("is-done"), 60);
 }
 

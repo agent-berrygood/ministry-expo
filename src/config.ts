@@ -67,22 +67,31 @@ export const SURFACE = {
 };
 
 export const LIGHT = {
+  /** 구운 빛 지도 밝기 배수 (PRD 7.4) */
+  bakedExposure: 0.85,
+  /** 구운 화면에서 굽지 않은 것(간판·깃발)과 바깥 바닥의 밝기 */
+  unbakedBrightness: 0.95,
+  unbakedGround: 0.86,
   exposure: 1.0,
   environment: 0.45,
   hemisphere: 1.15,
   sun: 2.5,
 };
 
-/** 데스크톱 후처리 */
-export const POST = {
-  aoIntensity: 0.85,
-  aoRadius: 0.6,
-  bloomStrength: 0.4,
-  bloomRadius: 0.5,
-  /** 햇빛 받은 흰 면(HDR 1 안팎)은 넘지 않고 전구(2.4배)만 넘도록 */
-  bloomThreshold: 1.6,
-  /** 전구처럼 빛나는 재질의 밝기 배수 (1보다 크면 블룸이 걸린다) */
-  emissiveBoost: 2.4,
+/**
+ * 빛 굽기 (PRD 7.4). ground는 바닥 빛 지도가 덮는 박람회장 영역(m).
+ * 평평한 것은 위에서 내려다본 좌표 u=(x-x0)/(x1-x0), v=(z1-z)/(z1-z0)로 이 영역에 매핑된다(Blender 쪽도 같은 식).
+ */
+export const BAKE = {
+  ground: { x0: -50, x1: 60, z0: -95, z1: 12 },
+};
+
+/** 성능 */
+export const QUALITY = {
+  /** 렌더링 해상도 상한 (고해상도 화면에서 픽셀 수가 4배로 느는 것을 막는다) */
+  maxPixelRatio: 1.5,
+  /** 전구처럼 빛나는 재질의 밝기 배수 */
+  emissiveBoost: 1.6,
 };
 
 /** 사진 인물 (PRD 4.8~4.10). 부스 기준 위치는 부스 로컬 좌표(정면 +z) */
@@ -93,6 +102,10 @@ export const FIGURE = {
   staffBottom: 0.82,
   staffStandard: { x: 0.95, zFromFront: -1.5 },
   staffStall: { x: 0.2, zFromFront: -1.85 },
+  /** 교역자 사진(머리~허벅지)의 위·아래 끝. 아래 끝은 데스크·조리대·안내석(1.0~1.15 m)에 가려진다 */
+  clergyTop: 1.72,
+  clergyBottom: 0.72,
+  plazaDesk: { x: 5.0, z: -43.8 },
   /** 실루엣 텍스처 비율 (가로 ÷ 세로) */
   suitAspect: 256 / 640,
   staffAspect: 256 / 300,
