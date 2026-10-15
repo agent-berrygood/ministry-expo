@@ -9,8 +9,8 @@
     "z1": 12
   },
   "scale": {
-    "ground": 1.803093433380127,
-    "atlas": 2.090381383895874
+    "ground": 1.8037511110305786,
+    "atlas": 2.094358205795288
   },
   "flat": [
     "ground-venue",
@@ -109,145 +109,181 @@
       "offset": 88836,
       "count": 6192
     },
-    "booth-infant": {
+    "preschool-podium": {
       "offset": 95028,
+      "count": 648
+    },
+    "booth-infant": {
+      "offset": 95676,
       "count": 6192
     },
     "booth-kindergarten": {
-      "offset": 101220,
+      "offset": 101868,
       "count": 6192
+    },
+    "kindergarten-podium": {
+      "offset": 108060,
+      "count": 648
     },
     "booth-children": {
-      "offset": 107412,
+      "offset": 108708,
       "count": 6192
+    },
+    "children-podium": {
+      "offset": 114900,
+      "count": 648
     },
     "booth-primary": {
-      "offset": 113604,
+      "offset": 115548,
       "count": 6192
+    },
+    "primary-podium": {
+      "offset": 121740,
+      "count": 648
     },
     "booth-junior": {
-      "offset": 119796,
+      "offset": 122388,
       "count": 6192
+    },
+    "junior-podium": {
+      "offset": 128580,
+      "count": 648
     },
     "booth-middle": {
-      "offset": 125988,
+      "offset": 129228,
       "count": 6192
     },
+    "middle-podium": {
+      "offset": 135420,
+      "count": 648
+    },
     "booth-high": {
-      "offset": 132180,
+      "offset": 136068,
       "count": 6192
     },
     "booth-wonderful-senior": {
-      "offset": 138372,
+      "offset": 142260,
       "count": 6192
     },
     "booth-adult-edu": {
-      "offset": 144564,
+      "offset": 148452,
       "count": 6192
     },
     "booth-culture-pr": {
-      "offset": 150756,
+      "offset": 154644,
       "count": 6192
     },
     "booth-young-adult-1": {
-      "offset": 156948,
+      "offset": 160836,
       "count": 6468
+    },
+    "young-adult-1-podium": {
+      "offset": 167304,
+      "count": 648
     },
     "booth-young-adult-2": {
-      "offset": 163416,
+      "offset": 167952,
       "count": 6468
+    },
+    "young-adult-2-podium": {
+      "offset": 174420,
+      "count": 648
     },
     "booth-eoullim": {
-      "offset": 169884,
+      "offset": 175068,
       "count": 6468
     },
+    "eoullim-podium": {
+      "offset": 181536,
+      "count": 648
+    },
     "booth-newcomer": {
-      "offset": 176352,
+      "offset": 182184,
       "count": 6468
     },
     "booth-funeral": {
-      "offset": 182820,
+      "offset": 188652,
       "count": 6468
     },
     "booth-warm-meal": {
-      "offset": 189288,
+      "offset": 195120,
       "count": 4896
     },
     "booth-warm-meal-awning": {
-      "offset": 194184,
+      "offset": 200016,
       "count": 6
     },
     "booth-warm-meal-valance": {
-      "offset": 194190,
+      "offset": 200022,
       "count": 6
     },
     "booth-joy-sharing": {
-      "offset": 194196,
+      "offset": 200028,
       "count": 3348
     },
     "booth-joy-sharing-awning": {
-      "offset": 197544,
+      "offset": 203376,
       "count": 6
     },
     "booth-joy-sharing-valance": {
-      "offset": 197550,
+      "offset": 203382,
       "count": 6
     },
     "booth-hope-sharing": {
-      "offset": 197556,
+      "offset": 203388,
       "count": 6156
     },
     "booth-love-sharing": {
-      "offset": 203712,
+      "offset": 209544,
       "count": 6156
     },
     "booth-finance": {
-      "offset": 209868,
+      "offset": 215700,
       "count": 6084
     },
     "booth-intercession": {
-      "offset": 215952,
+      "offset": 221784,
       "count": 6468
     },
     "booth-facilities": {
-      "offset": 222420,
+      "offset": 228252,
       "count": 6084
     },
     "booth-transport": {
-      "offset": 228504,
+      "offset": 234336,
       "count": 6156
     },
     "welcome-desk": {
-      "offset": 234660,
+      "offset": 240492,
       "count": 1452
     },
     "worship-desk": {
-      "offset": 236112,
+      "offset": 241944,
       "count": 648
     },
     "mission-desk": {
-      "offset": 236760,
+      "offset": 242592,
       "count": 648
     },
     "edu1-desk": {
-      "offset": 237408,
+      "offset": 243240,
       "count": 648
     },
     "edu2-desk": {
-      "offset": 238056,
+      "offset": 243888,
       "count": 648
     },
     "support-desk": {
-      "offset": 238704,
+      "offset": 244536,
       "count": 648
     },
     "overhead-frame": {
-      "offset": 239352,
-      "count": 10872
+      "offset": 245184,
+      "count": 9144
     },
     "people": {
-      "offset": 250224,
-      "count": 55296
+      "offset": 254328,
+      "count": 44928
     }
   },
   "files": {
@@ -261,5 +297,5 @@
     }
   },
   "uv": "lightmaps/atlas-uv.bin",
-  "bakedAt": "2026-10-15T05:32:35.603Z"
+  "bakedAt": "2026-10-15T06:39:04.643Z"
 }

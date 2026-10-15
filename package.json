@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "photos:init": "tsx scripts/init-photo-folders.ts",
     "figures": "tsx scripts/build-figures.ts",
-    "bake": "tsx scripts/bake/run.ts"
+    "bake": "tsx scripts/bake/run.ts",
+    "pano": "tsx scripts/pano/run.ts"
   },
   "dependencies": {
     "three": "^0.170.0"

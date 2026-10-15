@@ -1,0 +1,22 @@
+[
+  {
+    "id": "welcome",
+    "node": "n-plaza-welcome",
+    "title": "입구 환영",
+    "x": -0.9,
+    "z": -5.6,
+    "yaw": 28,
+    "file": "pano/welcome.webp",
+    "half": "pano/welcome-half.webp"
+  },
+  {
+    "id": "warm-meal",
+    "node": "n-booth-warm-meal",
+    "title": "나눔마당 · 따뜻한한끼봉사부",
+    "x": -11.5,
+    "z": -17,
+    "yaw": 0,
+    "file": "pano/warm-meal.webp",
+    "half": "pano/warm-meal-half.webp"
+  }
+]

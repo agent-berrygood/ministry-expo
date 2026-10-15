@@ -67,7 +67,8 @@ export function streetsOf(nodes: NavNode[]): Street[] {
     if (n.booth || n.x === 0) continue;
     rows.set(n.z, [...(rows.get(n.z) ?? []), n.x]);
   }
-  return [...rows].map(([z, xs]) => ({ z, minX: Math.min(...xs, 0) - 3.5, maxX: Math.max(...xs, 0) + 3.5 }));
+  // 지점이 둘 이상 늘어선 줄만 통로로 본다 (입구 환영 지점처럼 혼자 있는 지점은 통로가 아니다)
+  return [...rows].filter(([, xs]) => xs.length >= 2).map(([z, xs]) => ({ z, minX: Math.min(...xs, 0) - 3.5, maxX: Math.max(...xs, 0) + 3.5 }));
 }
 
 /** 통로 위 트러스 + 펜던트 조명 + 삼각 깃발 */
@@ -174,9 +175,11 @@ export function addPeople(scene: THREE.Scene, index: ExpoIndex, blobs: ShadowBlo
   };
 
   // 부스 앞 손님: 부스 양쪽 모서리 앞에 서서 부스를 본다
+  // 부스 앞에 교역자가 서는 부스는 손님을 세우지 않는다
+  const frontBooths = new Set(index.data.layout.figures.clergy.filter((c) => c.front && c.booth).map((c) => c.booth));
   for (const booth of index.data.booths) {
     const p = index.data.layout.booths[booth.id];
-    if (!p || booth.template !== "standard") continue;
+    if (!p || booth.template !== "standard" || frontBooths.has(booth.id)) continue;
     const rot = deg(p.rotY);
     const fx = Math.sin(rot);
     const fz = Math.cos(rot);

@@ -77,6 +77,8 @@ export interface FigureSpot {
   offset?: number;
   /** 이 존의 안내석(카테고리 담당 교역자) */
   desk?: string;
+  /** booth와 함께: 부스 안이 아니라 부스 앞 통로 쪽 안내 스탠드 뒤에 선다 (거리에서 잘 보이게) */
+  front?: boolean;
   x?: number;
   z?: number;
 }

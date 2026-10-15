@@ -35,6 +35,13 @@ function bakeUploadPlugin(): Plugin {
     apply: "serve",
     configureServer(server) {
       server.middlewares.use("/__bake/upload", (req, res) => {
+        // 저장 이름은 정해진 것만 받는다 (굽기용 scene.glb, 실사 렌더용 render.glb)
+        const name = new URL(req.url ?? "", "http://x").searchParams.get("name") ?? "scene.glb";
+        if (!["scene.glb", "render.glb"].includes(name)) {
+          res.statusCode = 400;
+          res.end();
+          return;
+        }
         if (req.method !== "POST") {
           res.statusCode = 405;
           res.end();
@@ -46,8 +53,8 @@ function bakeUploadPlugin(): Plugin {
           const dir = path.join(process.cwd(), "bake");
           fs.mkdirSync(dir, { recursive: true });
           const buf = Buffer.concat(chunks);
-          fs.writeFileSync(path.join(dir, "scene.glb"), buf);
-          server.config.logger.info(`🧱 굽기용 장면 저장: bake/scene.glb (${(buf.length / 1024 / 1024).toFixed(1)} MB)`);
+          fs.writeFileSync(path.join(dir, name), buf);
+          server.config.logger.info(`🧱 장면 저장: bake/${name} (${(buf.length / 1024 / 1024).toFixed(1)} MB)`);
           res.end("ok");
         });
       });
@@ -61,5 +68,9 @@ export default defineConfig({
   plugins: [figuresPlugin(), bakeUploadPlugin()],
   server: { host: true },
   // Three.js가 대부분인 단일 번들(약 540 KB, gzip 140 KB)이라 경고 기준만 올린다. PRD 8장 초기 로딩 3 MB 기준 안쪽.
-  build: { chunkSizeWarningLimit: 800 },
+  build: {
+    chunkSizeWarningLimit: 800,
+    // 본 앱 + 실사 시안(360° 사진) 페이지
+    rollupOptions: { input: { main: path.resolve(process.cwd(), "index.html"), pano: path.resolve(process.cwd(), "pano.html") } },
+  },
 });

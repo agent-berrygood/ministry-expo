@@ -105,6 +105,8 @@ export const FIGURE = {
   /** 교역자 사진(머리~허벅지)의 위·아래 끝. 아래 끝은 데스크·조리대·안내석(1.0~1.15 m)에 가려진다 */
   clergyTop: 1.72,
   clergyBottom: 0.72,
+  /** 부스 앞 안내 스탠드: 부스 정면에서 스탠드까지, 스탠드에서 사람까지(부스 쪽으로) */
+  podium: { fromFront: 0.85, behind: 0.35 },
   /** 실루엣 텍스처 비율 (가로 ÷ 세로) */
   suitAspect: 256 / 640,
   staffAspect: 256 / 300,

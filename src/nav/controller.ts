@@ -42,6 +42,7 @@ export class NavController {
     const n = graph.get(start);
     this.yaw = THREE.MathUtils.degToRad(n.yaw);
     world.camera.position.set(n.x, EYE_HEIGHT, n.z);
+    this.arrows.name = "nav-arrows";
     world.scene.add(this.arrows);
 
     this.arrowGeo = makeChevron(ARROW.size);

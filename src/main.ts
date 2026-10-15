@@ -116,7 +116,9 @@ async function main(): Promise<void> {
     };
     // 굽기용 장면 내보내기: 주소에 ?nobake를 붙여 연 뒤 콘솔에서 await __expo.exportBake()
     const exportBake = () => import("./dev/bakeExport").then((m) => m.exportBakeScene(world.scene));
-    Object.assign(window, { __expo: { world, nav, graph, step, exportBake } });
+    // 실사 시안용 장면 내보내기: await __expo.exportRender()
+    const exportRender = () => import("./dev/renderExport").then((m) => m.exportRenderScene(world.scene));
+    Object.assign(window, { __expo: { world, nav, graph, step, exportBake, exportRender } });
   }
 
   startRouter();

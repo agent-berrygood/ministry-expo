@@ -818,11 +818,6 @@
     },
     "clergy": [
       {
-        "id": "welcome-2",
-        "x": -1.85,
-        "z": -8.75
-      },
-      {
         "id": "worship-desk",
         "desk": "worship",
         "x": -7.3,
@@ -855,7 +850,7 @@
       {
         "id": "warm-meal-a",
         "booth": "warm-meal",
-        "offset": 1.6
+        "offset": 0.55
       },
       {
         "id": "joy-sharing-a",
@@ -865,47 +860,56 @@
       {
         "id": "preschool",
         "booth": "preschool",
-        "offset": -0.55
+        "offset": -1.25,
+        "front": true
       },
       {
         "id": "kindergarten",
         "booth": "kindergarten",
-        "offset": -0.55
+        "offset": -1.25,
+        "front": true
       },
       {
         "id": "children",
         "booth": "children",
-        "offset": -0.55
+        "offset": -1.25,
+        "front": true
       },
       {
         "id": "primary",
         "booth": "primary",
-        "offset": -0.55
+        "offset": -1.25,
+        "front": true
       },
       {
         "id": "junior",
         "booth": "junior",
-        "offset": -0.55
+        "offset": -1.25,
+        "front": true
       },
       {
         "id": "middle",
         "booth": "middle",
-        "offset": -0.55
+        "offset": -1.25,
+        "front": true
       },
       {
         "id": "young-adult-1",
         "booth": "young-adult-1",
-        "offset": -0.55
+        "offset": -1.25,
+        "front": true
       },
       {
         "id": "young-adult-2",
         "booth": "young-adult-2",
-        "offset": -0.55
+        "offset": -1.25,
+        "front": true
       },
       {
         "id": "eoullim",
         "booth": "eoullim",
-        "offset": -0.55
+        "offset": -1.25,
+        "front": true
       }
     ]
   }

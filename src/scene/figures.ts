@@ -50,7 +50,7 @@ export class FigureLayer {
     // 입구: 담임목사님이 환영 데스크 뒤에서 맞이한다
     const e = layout.figures.entrance;
     this.addWelcomeDesk(e.x, e.z);
-    const host = this.place(e.x - 0.15, FIGURE.clergyBottom, e.z - 0.35, FIGURE.clergyTop - FIGURE.clergyBottom, manifest.entrance ?? undefined, {
+    const host = this.place(e.x + 0.15, FIGURE.clergyBottom, e.z - 0.35, FIGURE.clergyTop - FIGURE.clergyBottom, manifest.entrance ?? undefined, {
       key: "suit-wave",
       make: () => suitFigureTexture(true),
       aspect: FIGURE.suitAspect,
@@ -63,7 +63,18 @@ export class FigureLayer {
       if (!photo) continue;
       let x: number;
       let z: number;
-      if (spot.booth) {
+      if (spot.booth && spot.front) {
+        const obj = booths.get(spot.booth);
+        const booth = index.boothById.get(spot.booth);
+        if (!obj || !booth) continue;
+        const d = BOOTH[booth.size].d;
+        const zPodium = d / 2 + FIGURE.podium.fromFront;
+        this.addPodium(obj, spot.offset ?? 0, zPodium, index.zoneOf(booth).color, booth.name, spot.id);
+        obj.group.updateMatrixWorld(true);
+        const world = obj.group.localToWorld(new THREE.Vector3(spot.offset ?? 0, 0, zPodium - FIGURE.podium.behind));
+        x = world.x;
+        z = world.z;
+      } else if (spot.booth) {
         const obj = booths.get(spot.booth);
         const booth = index.boothById.get(spot.booth);
         if (!obj || !booth) continue;
@@ -126,6 +137,19 @@ export class FigureLayer {
     const sign = texturedPlane(signTexture("환영합니다", "#7c3aed", { aspect: 1.3 / 0.34 }), 1.3, 0.34);
     sign.position.set(x, 0.62, z + 0.281);
     this.scene.add(sign);
+  }
+
+  /** 부스 앞 안내 스탠드 (부스 로컬 좌표, 앞면이 통로 쪽 +z). 부서 담당 교역자가 뒤에 선다 */
+  private addPodium(obj: BoothObject, x: number, z: number, color: string, name: string, id: string): void {
+    const b = new MeshBuilder();
+    b.use("paint").rbox(0.62, 1.0, 0.42, x, 0.5, z, color, 0.05);
+    b.use("wood").rbox(0.7, 0.05, 0.5, x, 1.025, z, COLORS.wood, 0.02);
+    const podium = markBake(b.build(vertexColorMaterial()), "atlas", `${id}-podium`);
+    obj.group.add(podium);
+    this.props.push(podium);
+    const sign = texturedPlane(signTexture(name, color, { aspect: 0.56 / 0.2 }), 0.56, 0.2);
+    sign.position.set(x, 0.72, z + 0.212);
+    obj.group.add(sign);
   }
 
   /** 존 안내석: 카테고리 담당 교역자가 뒤에 선다. 앞면(+z)이 통로를 본다 */
