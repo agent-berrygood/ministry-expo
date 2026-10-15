@@ -1,0 +1,804 @@
+{
+  "booths": {
+    "love-sharing": {
+      "x": -30,
+      "z": -24.5,
+      "rotY": 0
+    },
+    "hope-sharing": {
+      "x": -30,
+      "z": -15.5,
+      "rotY": 180
+    },
+    "joy-sharing": {
+      "x": -20.5,
+      "z": -26,
+      "rotY": 0
+    },
+    "warm-meal": {
+      "x": -11.5,
+      "z": -26,
+      "rotY": 0
+    },
+    "newcomer": {
+      "x": 8,
+      "z": -24.5,
+      "rotY": 0
+    },
+    "funeral": {
+      "x": 8,
+      "z": -15.5,
+      "rotY": 180
+    },
+    "wonderful-senior": {
+      "x": 18,
+      "z": -24.5,
+      "rotY": 0
+    },
+    "adult-edu": {
+      "x": 18,
+      "z": -15.5,
+      "rotY": 180
+    },
+    "culture-pr": {
+      "x": 23,
+      "z": -24.5,
+      "rotY": 0
+    },
+    "young-adult-1": {
+      "x": 33,
+      "z": -24.5,
+      "rotY": 0
+    },
+    "young-adult-2": {
+      "x": 33,
+      "z": -15.5,
+      "rotY": 180
+    },
+    "eoullim": {
+      "x": 38,
+      "z": -24.5,
+      "rotY": 0
+    },
+    "finance": {
+      "x": -17,
+      "z": -52.5,
+      "rotY": 0
+    },
+    "intercession": {
+      "x": -17,
+      "z": -43.5,
+      "rotY": 180
+    },
+    "facilities": {
+      "x": -12,
+      "z": -52.5,
+      "rotY": 0
+    },
+    "transport": {
+      "x": -12,
+      "z": -43.5,
+      "rotY": 180
+    },
+    "preschool": {
+      "x": 12,
+      "z": -52.5,
+      "rotY": 0
+    },
+    "children": {
+      "x": 12,
+      "z": -43.5,
+      "rotY": 180
+    },
+    "infant": {
+      "x": 17,
+      "z": -52.5,
+      "rotY": 0
+    },
+    "primary": {
+      "x": 17,
+      "z": -43.5,
+      "rotY": 180
+    },
+    "kindergarten": {
+      "x": 22,
+      "z": -52.5,
+      "rotY": 0
+    },
+    "junior": {
+      "x": 22,
+      "z": -43.5,
+      "rotY": 180
+    },
+    "middle": {
+      "x": 27,
+      "z": -52.5,
+      "rotY": 0
+    },
+    "high": {
+      "x": 27,
+      "z": -43.5,
+      "rotY": 180
+    },
+    "galilee": {
+      "x": -22,
+      "z": -76.5,
+      "rotY": 0
+    },
+    "zion-choir": {
+      "x": -22,
+      "z": -67.5,
+      "rotY": 180
+    },
+    "bethesda": {
+      "x": -17,
+      "z": -76.5,
+      "rotY": 0
+    },
+    "gloria-choir": {
+      "x": -17,
+      "z": -67.5,
+      "rotY": 180
+    },
+    "worship-support": {
+      "x": -12,
+      "z": -76.5,
+      "rotY": 0
+    },
+    "breathing-band": {
+      "x": -12,
+      "z": -67.5,
+      "rotY": 180
+    },
+    "overseas-1": {
+      "x": 12,
+      "z": -76.5,
+      "rotY": 0
+    },
+    "youth-mission": {
+      "x": 12,
+      "z": -67.5,
+      "rotY": 180
+    },
+    "overseas-2": {
+      "x": 17,
+      "z": -76.5,
+      "rotY": 0
+    }
+  },
+  "nodes": [
+    {
+      "id": "n-sharing-a1",
+      "x": -30,
+      "z": -20,
+      "yaw": 270,
+      "links": [
+        "n-booth-love-sharing",
+        "n-booth-hope-sharing",
+        "n-plaza-madang"
+      ]
+    },
+    {
+      "id": "n-booth-love-sharing",
+      "x": -30,
+      "z": -19.4,
+      "yaw": 0,
+      "links": [
+        "n-sharing-a1"
+      ],
+      "booth": "love-sharing"
+    },
+    {
+      "id": "n-booth-hope-sharing",
+      "x": -30,
+      "z": -20.6,
+      "yaw": 180,
+      "links": [
+        "n-sharing-a1"
+      ],
+      "booth": "hope-sharing"
+    },
+    {
+      "id": "n-plaza-madang",
+      "x": -16,
+      "z": -20,
+      "yaw": 0,
+      "links": [
+        "n-booth-joy-sharing",
+        "n-booth-warm-meal",
+        "n-sharing-a1",
+        "n-plaza-j1"
+      ]
+    },
+    {
+      "id": "n-booth-joy-sharing",
+      "x": -20.5,
+      "z": -17,
+      "yaw": 0,
+      "links": [
+        "n-plaza-madang",
+        "n-booth-warm-meal"
+      ],
+      "booth": "joy-sharing"
+    },
+    {
+      "id": "n-booth-warm-meal",
+      "x": -11.5,
+      "z": -17,
+      "yaw": 0,
+      "links": [
+        "n-plaza-madang",
+        "n-booth-joy-sharing"
+      ],
+      "booth": "warm-meal"
+    },
+    {
+      "id": "n-plaza-j1",
+      "x": 0,
+      "z": -20,
+      "yaw": 0,
+      "links": [
+        "n-plaza-madang",
+        "n-care-a1",
+        "entrance",
+        "n-plaza-b1"
+      ]
+    },
+    {
+      "id": "n-care-a1",
+      "x": 8,
+      "z": -20,
+      "yaw": 90,
+      "links": [
+        "n-booth-newcomer",
+        "n-booth-funeral",
+        "n-plaza-j1",
+        "n-edu2-a1"
+      ]
+    },
+    {
+      "id": "n-booth-newcomer",
+      "x": 8,
+      "z": -19.4,
+      "yaw": 0,
+      "links": [
+        "n-care-a1"
+      ],
+      "booth": "newcomer"
+    },
+    {
+      "id": "n-booth-funeral",
+      "x": 8,
+      "z": -20.6,
+      "yaw": 180,
+      "links": [
+        "n-care-a1"
+      ],
+      "booth": "funeral"
+    },
+    {
+      "id": "n-edu2-a1",
+      "x": 18,
+      "z": -20,
+      "yaw": 90,
+      "links": [
+        "n-booth-wonderful-senior",
+        "n-booth-adult-edu",
+        "n-care-a1",
+        "n-edu2-a2"
+      ]
+    },
+    {
+      "id": "n-booth-wonderful-senior",
+      "x": 18,
+      "z": -19.4,
+      "yaw": 0,
+      "links": [
+        "n-edu2-a1",
+        "n-booth-culture-pr"
+      ],
+      "booth": "wonderful-senior"
+    },
+    {
+      "id": "n-booth-adult-edu",
+      "x": 18,
+      "z": -20.6,
+      "yaw": 180,
+      "links": [
+        "n-edu2-a1"
+      ],
+      "booth": "adult-edu"
+    },
+    {
+      "id": "n-edu2-a2",
+      "x": 23,
+      "z": -20,
+      "yaw": 90,
+      "links": [
+        "n-booth-culture-pr",
+        "n-edu2-a1",
+        "n-youth-a1"
+      ]
+    },
+    {
+      "id": "n-booth-culture-pr",
+      "x": 23,
+      "z": -19.4,
+      "yaw": 0,
+      "links": [
+        "n-edu2-a2",
+        "n-booth-wonderful-senior"
+      ],
+      "booth": "culture-pr"
+    },
+    {
+      "id": "n-youth-a1",
+      "x": 33,
+      "z": -20,
+      "yaw": 90,
+      "links": [
+        "n-booth-young-adult-1",
+        "n-booth-young-adult-2",
+        "n-edu2-a2",
+        "n-youth-a2"
+      ]
+    },
+    {
+      "id": "n-booth-young-adult-1",
+      "x": 33,
+      "z": -19.4,
+      "yaw": 0,
+      "links": [
+        "n-youth-a1",
+        "n-booth-eoullim"
+      ],
+      "booth": "young-adult-1"
+    },
+    {
+      "id": "n-booth-young-adult-2",
+      "x": 33,
+      "z": -20.6,
+      "yaw": 180,
+      "links": [
+        "n-youth-a1"
+      ],
+      "booth": "young-adult-2"
+    },
+    {
+      "id": "n-youth-a2",
+      "x": 38,
+      "z": -20,
+      "yaw": 90,
+      "links": [
+        "n-booth-eoullim",
+        "n-youth-a1"
+      ]
+    },
+    {
+      "id": "n-booth-eoullim",
+      "x": 38,
+      "z": -19.4,
+      "yaw": 0,
+      "links": [
+        "n-youth-a2",
+        "n-booth-young-adult-1"
+      ],
+      "booth": "eoullim"
+    },
+    {
+      "id": "n-support-a1",
+      "x": -17,
+      "z": -48,
+      "yaw": 270,
+      "links": [
+        "n-booth-finance",
+        "n-booth-intercession",
+        "n-support-a2"
+      ]
+    },
+    {
+      "id": "n-booth-finance",
+      "x": -17,
+      "z": -47.4,
+      "yaw": 0,
+      "links": [
+        "n-support-a1",
+        "n-booth-facilities"
+      ],
+      "booth": "finance"
+    },
+    {
+      "id": "n-booth-intercession",
+      "x": -17,
+      "z": -48.6,
+      "yaw": 180,
+      "links": [
+        "n-support-a1",
+        "n-booth-transport"
+      ],
+      "booth": "intercession"
+    },
+    {
+      "id": "n-support-a2",
+      "x": -12,
+      "z": -48,
+      "yaw": 270,
+      "links": [
+        "n-booth-facilities",
+        "n-booth-transport",
+        "n-support-a1",
+        "n-plaza-center"
+      ]
+    },
+    {
+      "id": "n-booth-facilities",
+      "x": -12,
+      "z": -47.4,
+      "yaw": 0,
+      "links": [
+        "n-support-a2",
+        "n-booth-finance"
+      ],
+      "booth": "facilities"
+    },
+    {
+      "id": "n-booth-transport",
+      "x": -12,
+      "z": -48.6,
+      "yaw": 180,
+      "links": [
+        "n-support-a2",
+        "n-booth-intercession"
+      ],
+      "booth": "transport"
+    },
+    {
+      "id": "n-plaza-center",
+      "x": 0,
+      "z": -48,
+      "yaw": 0,
+      "links": [
+        "n-support-a2",
+        "n-edu1-a1",
+        "n-plaza-b1",
+        "n-plaza-b2"
+      ]
+    },
+    {
+      "id": "n-edu1-a1",
+      "x": 12,
+      "z": -48,
+      "yaw": 90,
+      "links": [
+        "n-booth-preschool",
+        "n-booth-children",
+        "n-plaza-center",
+        "n-edu1-a2"
+      ]
+    },
+    {
+      "id": "n-booth-preschool",
+      "x": 12,
+      "z": -47.4,
+      "yaw": 0,
+      "links": [
+        "n-edu1-a1",
+        "n-booth-infant"
+      ],
+      "booth": "preschool"
+    },
+    {
+      "id": "n-booth-children",
+      "x": 12,
+      "z": -48.6,
+      "yaw": 180,
+      "links": [
+        "n-edu1-a1",
+        "n-booth-primary"
+      ],
+      "booth": "children"
+    },
+    {
+      "id": "n-edu1-a2",
+      "x": 17,
+      "z": -48,
+      "yaw": 90,
+      "links": [
+        "n-booth-infant",
+        "n-booth-primary",
+        "n-edu1-a1",
+        "n-edu1-a3"
+      ]
+    },
+    {
+      "id": "n-booth-infant",
+      "x": 17,
+      "z": -47.4,
+      "yaw": 0,
+      "links": [
+        "n-edu1-a2",
+        "n-booth-preschool",
+        "n-booth-kindergarten"
+      ],
+      "booth": "infant"
+    },
+    {
+      "id": "n-booth-primary",
+      "x": 17,
+      "z": -48.6,
+      "yaw": 180,
+      "links": [
+        "n-edu1-a2",
+        "n-booth-children",
+        "n-booth-junior"
+      ],
+      "booth": "primary"
+    },
+    {
+      "id": "n-edu1-a3",
+      "x": 22,
+      "z": -48,
+      "yaw": 90,
+      "links": [
+        "n-booth-kindergarten",
+        "n-booth-junior",
+        "n-edu1-a2",
+        "n-edu1-a4"
+      ]
+    },
+    {
+      "id": "n-booth-kindergarten",
+      "x": 22,
+      "z": -47.4,
+      "yaw": 0,
+      "links": [
+        "n-edu1-a3",
+        "n-booth-infant",
+        "n-booth-middle"
+      ],
+      "booth": "kindergarten"
+    },
+    {
+      "id": "n-booth-junior",
+      "x": 22,
+      "z": -48.6,
+      "yaw": 180,
+      "links": [
+        "n-edu1-a3",
+        "n-booth-primary",
+        "n-booth-high"
+      ],
+      "booth": "junior"
+    },
+    {
+      "id": "n-edu1-a4",
+      "x": 27,
+      "z": -48,
+      "yaw": 90,
+      "links": [
+        "n-booth-middle",
+        "n-booth-high",
+        "n-edu1-a3"
+      ]
+    },
+    {
+      "id": "n-booth-middle",
+      "x": 27,
+      "z": -47.4,
+      "yaw": 0,
+      "links": [
+        "n-edu1-a4",
+        "n-booth-kindergarten"
+      ],
+      "booth": "middle"
+    },
+    {
+      "id": "n-booth-high",
+      "x": 27,
+      "z": -48.6,
+      "yaw": 180,
+      "links": [
+        "n-edu1-a4",
+        "n-booth-junior"
+      ],
+      "booth": "high"
+    },
+    {
+      "id": "n-worship-a1",
+      "x": -22,
+      "z": -72,
+      "yaw": 270,
+      "links": [
+        "n-booth-galilee",
+        "n-booth-zion-choir",
+        "n-worship-a2"
+      ]
+    },
+    {
+      "id": "n-booth-galilee",
+      "x": -22,
+      "z": -71.4,
+      "yaw": 0,
+      "links": [
+        "n-worship-a1",
+        "n-booth-bethesda"
+      ],
+      "booth": "galilee"
+    },
+    {
+      "id": "n-booth-zion-choir",
+      "x": -22,
+      "z": -72.6,
+      "yaw": 180,
+      "links": [
+        "n-worship-a1",
+        "n-booth-gloria-choir"
+      ],
+      "booth": "zion-choir"
+    },
+    {
+      "id": "n-worship-a2",
+      "x": -17,
+      "z": -72,
+      "yaw": 270,
+      "links": [
+        "n-booth-bethesda",
+        "n-booth-gloria-choir",
+        "n-worship-a1",
+        "n-worship-a3"
+      ]
+    },
+    {
+      "id": "n-booth-bethesda",
+      "x": -17,
+      "z": -71.4,
+      "yaw": 0,
+      "links": [
+        "n-worship-a2",
+        "n-booth-galilee",
+        "n-booth-worship-support"
+      ],
+      "booth": "bethesda"
+    },
+    {
+      "id": "n-booth-gloria-choir",
+      "x": -17,
+      "z": -72.6,
+      "yaw": 180,
+      "links": [
+        "n-worship-a2",
+        "n-booth-zion-choir",
+        "n-booth-breathing-band"
+      ],
+      "booth": "gloria-choir"
+    },
+    {
+      "id": "n-worship-a3",
+      "x": -12,
+      "z": -72,
+      "yaw": 270,
+      "links": [
+        "n-booth-worship-support",
+        "n-booth-breathing-band",
+        "n-worship-a2",
+        "n-plaza-j3"
+      ]
+    },
+    {
+      "id": "n-booth-worship-support",
+      "x": -12,
+      "z": -71.4,
+      "yaw": 0,
+      "links": [
+        "n-worship-a3",
+        "n-booth-bethesda"
+      ],
+      "booth": "worship-support"
+    },
+    {
+      "id": "n-booth-breathing-band",
+      "x": -12,
+      "z": -72.6,
+      "yaw": 180,
+      "links": [
+        "n-worship-a3",
+        "n-booth-gloria-choir"
+      ],
+      "booth": "breathing-band"
+    },
+    {
+      "id": "n-plaza-j3",
+      "x": 0,
+      "z": -72,
+      "yaw": 0,
+      "links": [
+        "n-worship-a3",
+        "n-mission-a1",
+        "n-plaza-b2"
+      ]
+    },
+    {
+      "id": "n-mission-a1",
+      "x": 12,
+      "z": -72,
+      "yaw": 90,
+      "links": [
+        "n-booth-overseas-1",
+        "n-booth-youth-mission",
+        "n-plaza-j3",
+        "n-mission-a2"
+      ]
+    },
+    {
+      "id": "n-booth-overseas-1",
+      "x": 12,
+      "z": -71.4,
+      "yaw": 0,
+      "links": [
+        "n-mission-a1",
+        "n-booth-overseas-2"
+      ],
+      "booth": "overseas-1"
+    },
+    {
+      "id": "n-booth-youth-mission",
+      "x": 12,
+      "z": -72.6,
+      "yaw": 180,
+      "links": [
+        "n-mission-a1"
+      ],
+      "booth": "youth-mission"
+    },
+    {
+      "id": "n-mission-a2",
+      "x": 17,
+      "z": -72,
+      "yaw": 90,
+      "links": [
+        "n-booth-overseas-2",
+        "n-mission-a1"
+      ]
+    },
+    {
+      "id": "n-booth-overseas-2",
+      "x": 17,
+      "z": -71.4,
+      "yaw": 0,
+      "links": [
+        "n-mission-a2",
+        "n-booth-overseas-1"
+      ],
+      "booth": "overseas-2"
+    },
+    {
+      "id": "entrance",
+      "x": 0,
+      "z": 0,
+      "yaw": 0,
+      "links": [
+        "n-plaza-j1"
+      ]
+    },
+    {
+      "id": "n-plaza-b1",
+      "x": 0,
+      "z": -34,
+      "yaw": 0,
+      "links": [
+        "n-plaza-j1",
+        "n-plaza-center"
+      ]
+    },
+    {
+      "id": "n-plaza-b2",
+      "x": 0,
+      "z": -60,
+      "yaw": 0,
+      "links": [
+        "n-plaza-center",
+        "n-plaza-j3"
+      ]
+    }
+  ]
+}

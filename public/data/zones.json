@@ -1,0 +1,58 @@
+[
+  {
+    "id": "worship",
+    "name": "예배사역",
+    "color": "#7C3AED",
+    "order": 1,
+    "entryNode": "n-worship-a1"
+  },
+  {
+    "id": "mission",
+    "name": "선교사역",
+    "color": "#0EA5E9",
+    "order": 2,
+    "entryNode": "n-mission-a1"
+  },
+  {
+    "id": "edu1",
+    "name": "교육1부사역",
+    "color": "#EAB308",
+    "order": 3,
+    "entryNode": "n-edu1-a1"
+  },
+  {
+    "id": "edu2",
+    "name": "교육2부사역",
+    "color": "#65A30D",
+    "order": 4,
+    "entryNode": "n-edu2-a1"
+  },
+  {
+    "id": "youth",
+    "name": "청년사역",
+    "color": "#EC4899",
+    "order": 5,
+    "entryNode": "n-youth-a1"
+  },
+  {
+    "id": "care",
+    "name": "돌봄사역",
+    "color": "#14B8A6",
+    "order": 6,
+    "entryNode": "n-care-a1"
+  },
+  {
+    "id": "sharing",
+    "name": "나눔사역",
+    "color": "#F97316",
+    "order": 7,
+    "entryNode": "n-sharing-a1"
+  },
+  {
+    "id": "support",
+    "name": "사역지원",
+    "color": "#64748B",
+    "order": 8,
+    "entryNode": "n-support-a1"
+  }
+]
