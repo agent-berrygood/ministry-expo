@@ -14,3 +14,7 @@ public/data/photos.json
 
 # 컴퓨터별 설정 (원본 보관 경로 등)
 .env.local
+
+# 인물 사진 생성물 (PRD 4.8)
+public/figures/
+public/data/figures.json

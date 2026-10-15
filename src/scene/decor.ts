@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { BOOTH, COLORS, DECOR } from "../config";
 import type { ExpoIndex } from "../data/load";
 import type { NavNode } from "../data/types";
-import { MeshBuilder, deg, vertexColorMaterial } from "./geometry";
+import { MeshBuilder, deg, vertexColorMaterial, glowMaterial } from "./geometry";
 import { blobShadowTexture } from "./textures";
 
 // 분위기 연출용 장식. 모두 정점 색으로 합쳐서 몇 개의 드로우콜로 끝낸다 (PRD 8장).
@@ -72,7 +72,8 @@ export function streetsOf(nodes: NavNode[]): Street[] {
 /** 통로 위 트러스 + 펜던트 조명 + 삼각 깃발 */
 export function addOverhead(scene: THREE.Scene, nodes: NavNode[]): void {
   const frame = new MeshBuilder();
-  const flags = new MeshBuilder();
+  const flagsSurface = "fabric";
+  const flags = new MeshBuilder().use(flagsSurface);
   const bulbs = new MeshBuilder();
   const y = DECOR.trussY;
   const half = DECOR.trussHalfWidth;
@@ -133,17 +134,17 @@ export function addOverhead(scene: THREE.Scene, nodes: NavNode[]): void {
     frame.rbox(0.5, 0.12, 0.5, x, 0.06, z, 0x4b4038, 0.03);
   }
 
-  const frameMesh = frame.build(vertexColorMaterial({ roughness: 0.6, metalness: 0.3 }));
+  const frameMesh = frame.build(vertexColorMaterial({ roughness: 0.45, metalness: 0.65 }));
   frameMesh.castShadow = true;
   const flagMesh = flags.build(vertexColorMaterial({ side: THREE.DoubleSide, roughness: 0.95 }));
-  const bulbMesh = bulbs.build(new THREE.MeshBasicMaterial({ vertexColors: true }));
+  const bulbMesh = bulbs.build(glowMaterial());
   scene.add(frameMesh, flagMesh, bulbMesh);
 }
 
 /** 사람 실루엣. 이동 지점과 화살표 자리는 피해서 세운다. */
 export function addPeople(scene: THREE.Scene, index: ExpoIndex, blobs: ShadowBlobs): void {
   const rand = rng(20261015);
-  const b = new MeshBuilder();
+  const b = new MeshBuilder().use("fabric");
   const nodes = index.data.layout.nodes;
   const shirts = DECOR.shirtColors;
   const skins = DECOR.skinColors;
@@ -176,7 +177,8 @@ export function addPeople(scene: THREE.Scene, index: ExpoIndex, blobs: ShadowBlo
     const fz = Math.cos(rot);
     const rx = Math.cos(rot);
     const rz = -Math.sin(rot);
-    const count = rand() < 0.35 ? 0 : rand() < 0.6 ? 1 : 2;
+    const roll = rand();
+    const count = roll < DECOR.visitorNone ? 0 : roll < DECOR.visitorNone + DECOR.visitorOne ? 1 : 2;
     for (let i = 0; i < count; i++) {
       const side = i === 0 ? (rand() < 0.5 ? -1 : 1) : -1 * (rand() < 0.5 ? -1 : 1);
       const lateral = side * (1.6 + rand() * 0.4);
@@ -187,13 +189,13 @@ export function addPeople(scene: THREE.Scene, index: ExpoIndex, blobs: ShadowBlo
 
   // 통로를 오가는 사람들
   for (const st of streetsOf(nodes)) {
-    for (let x = st.minX + 2; x < st.maxX - 2; x += 2.5 + rand() * 4) {
+    for (let x = st.minX + 3; x < st.maxX - 3; x += DECOR.walkerGap + rand() * DECOR.walkerGap) {
       const side = rand() < 0.5 ? -1 : 1;
       person(x, st.z + side * (1.7 + rand() * 0.3), rand() * Math.PI * 2, rand() < 0.12);
     }
   }
   // 대로
-  for (let z = -14; z > -76; z -= 4 + rand() * 5) person((rand() < 0.5 ? -1 : 1) * (1.6 + rand() * 0.4), z, rand() * Math.PI * 2);
+  for (let z = -16; z > -76; z -= DECOR.walkerGap + 2 + rand() * DECOR.walkerGap) person((rand() < 0.5 ? -1 : 1) * (1.6 + rand() * 0.4), z, rand() * Math.PI * 2);
 
   // 나눔마당 상에 둘러앉은 사람들
   for (const id of ["joy-sharing", "warm-meal"]) {
@@ -201,8 +203,8 @@ export function addPeople(scene: THREE.Scene, index: ExpoIndex, blobs: ShadowBlo
     if (!p) continue;
     const tz = p.z + BOOTH.wide.d / 2 + 1.6;
     for (const tx of [-2.2, 2.2]) {
-      if (rand() < 0.75) person(p.x + tx - 0.9, tz + 0.05, deg(90), rand() < 0.3);
-      if (rand() < 0.75) person(p.x + tx + 0.9, tz - 0.05, deg(-90));
+      if (rand() < 0.5) person(p.x + tx - 0.9, tz + 0.05, deg(90), rand() < 0.3);
+      if (rand() < 0.4) person(p.x + tx + 0.9, tz - 0.05, deg(-90));
     }
   }
 
@@ -217,7 +219,8 @@ export function addPlazaFurniture(scene: THREE.Scene, cx: number, cz: number, bl
   for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
     const x = cx + sx * 4.6;
     const z = cz + sz * 4.6;
-    b.cylinder(1.1, 1.2, 0.55, x, 0.28, z, 0xd9c7a8, 20);
+    b.use("stone").cylinder(1.1, 1.2, 0.55, x, 0.28, z, 0xd9c7a8, 20);
+    b.use("paint");
     b.cylinder(1.0, 1.0, 0.04, x, 0.56, z, 0x6d8b4f, 20);
     b.cylinder(0.12, 0.16, 1.8, x, 1.4, z, 0x7a5232, 8);
     b.sphere(1.0, x, 2.7, z, 0x7fb069);
@@ -228,8 +231,9 @@ export function addPlazaFurniture(scene: THREE.Scene, cx: number, cz: number, bl
     const rot = Math.atan2(sx, sz);
     const bx = x + Math.sin(rot) * 1.75;
     const bz = z + Math.cos(rot) * 1.75;
-    b.rbox(1.5, 0.08, 0.45, bx, 0.45, bz, COLORS.wood, 0.03, rot + Math.PI / 2);
+    b.use("wood").rbox(1.5, 0.08, 0.45, bx, 0.45, bz, COLORS.wood, 0.03, rot + Math.PI / 2);
     b.rbox(1.5, 0.35, 0.06, bx - Math.sin(rot) * 0.22, 0.68, bz - Math.cos(rot) * 0.22, COLORS.wood, 0.02, rot + Math.PI / 2);
+    b.use("paint");
     for (const s of [-0.6, 0.6]) {
       const lx = bx + Math.cos(rot) * s;
       const lz = bz - Math.sin(rot) * s;

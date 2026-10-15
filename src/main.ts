@@ -9,6 +9,7 @@ import { ensureFonts } from "./scene/textures";
 import { World } from "./scene/world";
 import { h } from "./ui/dom";
 import { Hud } from "./ui/hud";
+import { Hunt } from "./ui/hunt";
 import { ListView } from "./ui/listView";
 import { Minimap } from "./ui/minimap";
 import { BoothPanel } from "./ui/panel";
@@ -52,6 +53,11 @@ async function main(): Promise<void> {
   const nav = new NavController(world, graph, "entrance");
   new Hud(ui, index);
   new Minimap(ui, index);
+  new Hunt(
+    ui,
+    world.figures.hiddenIds.map((id) => ({ id, caption: world.figures.captionOf(id) })),
+    (id) => world.figures.celebrate(id),
+  );
 
   const boothNode = (id: string) => index.boothNode.get(id);
 

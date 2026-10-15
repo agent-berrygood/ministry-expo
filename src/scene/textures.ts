@@ -171,6 +171,239 @@ export function softDotTexture(): THREE.CanvasTexture {
   return finish(canvas);
 }
 
+/** 이음매 없이 반복되는 값 노이즈 (0~1). period 칸마다 같은 값으로 돌아온다. */
+function tileNoise(period: number, seed: number) {
+  const grid = new Float32Array(period * period);
+  let s = seed;
+  for (let i = 0; i < grid.length; i++) {
+    s = (s * 16807) % 2147483647;
+    grid[i] = s / 2147483647;
+  }
+  const at = (x: number, y: number) => grid[(((y % period) + period) % period) * period + (((x % period) + period) % period)];
+  return (u: number, v: number) => {
+    const x = u * period;
+    const y = v * period;
+    const x0 = Math.floor(x);
+    const y0 = Math.floor(y);
+    const fx = x - x0;
+    const fy = y - y0;
+    const sx = fx * fx * (3 - 2 * fx);
+    const sy = fy * fy * (3 - 2 * fy);
+    const a = at(x0, y0) + (at(x0 + 1, y0) - at(x0, y0)) * sx;
+    const b = at(x0, y0 + 1) + (at(x0 + 1, y0 + 1) - at(x0, y0 + 1)) * sx;
+    return a + (b - a) * sy;
+  };
+}
+
+/**
+ * 질감 아틀라스 (2×2): 칠한 벽 · 나무결 · 천 · 돌.
+ * 거의 흰색 위의 명암만 담아서, 실제 색은 정점 색이 정한다. 칸마다 이음매 없이 반복된다.
+ */
+export function surfaceAtlasTexture(): THREE.CanvasTexture {
+  const T = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = T * 2;
+  canvas.height = T * 2;
+  const ctx = canvas.getContext("2d")!;
+  const img = ctx.createImageData(T * 2, T * 2);
+  const n1 = tileNoise(8, 11);
+  const n2 = tileNoise(32, 29);
+  const n3 = tileNoise(64, 47);
+  const n4 = tileNoise(4, 71);
+
+  // 캔버스 위쪽이 텍스처의 v=1 쪽이다 (flipY)
+  const tiles: [number, number, (u: number, v: number) => number][] = [
+    // 왼쪽 아래: 칠한 벽 — 아주 옅은 얼룩
+    [0, 1, (u, v) => 0.94 + (n1(u, v) - 0.5) * 0.05 + (n3(u, v) - 0.5) * 0.03],
+    // 오른쪽 아래: 나무결 — u 방향으로 흐르는 결과 옹이
+    [1, 1, (u, v) => {
+      const warp = n1(u, v) * 2.5 + n4(u, v) * 1.5;
+      const grain = Math.sin((v * 18 + warp) * Math.PI * 2) * 0.5 + 0.5;
+      const fine = n3(u * 0.25, v);
+      return 0.7 + grain * 0.14 + fine * 0.12 + (n2(u, v) - 0.5) * 0.04;
+    }],
+    // 왼쪽 위: 천 — 가로세로 실이 엮인 무늬
+    [0, 0, (u, v) => {
+      const k = 48;
+      const wu = Math.sin(u * k * Math.PI * 2);
+      const wv = Math.sin(v * k * Math.PI * 2);
+      const over = Math.sign(Math.sin(u * k * Math.PI) * Math.sin(v * k * Math.PI));
+      return 0.86 + (over > 0 ? wu : wv) * 0.05 + (n3(u, v) - 0.5) * 0.06;
+    }],
+    // 오른쪽 위: 돌·콘크리트 — 얼룩과 잔점
+    [1, 0, (u, v) => {
+      const speck = n3(u, v) > 0.82 ? -0.06 : 0;
+      return 0.88 + (n1(u, v) - 0.5) * 0.1 + (n2(u, v) - 0.5) * 0.06 + speck;
+    }],
+  ];
+  for (const [tx, ty, f] of tiles) {
+    for (let y = 0; y < T; y++) {
+      for (let x = 0; x < T; x++) {
+        const v = Math.min(1, Math.max(0, f(x / T, y / T)));
+        const i = ((ty * T + y) * T * 2 + (tx * T + x)) * 4;
+        const c = Math.round(v * 255);
+        img.data[i] = c;
+        img.data[i + 1] = c;
+        img.data[i + 2] = c;
+        img.data[i + 3] = 255;
+      }
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const tex = finish(canvas);
+  tex.anisotropy = 8;
+  return tex;
+}
+
+function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number, fill: string) {
+  ctx.fillStyle = fill;
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, r);
+  ctx.fill();
+}
+
+/** 머리·목 (얼굴은 비우고 머리카락만 살짝) */
+function drawHead(ctx: CanvasRenderingContext2D, cx: number, top: number, r: number) {
+  ctx.fillStyle = "#e9c3a0";
+  ctx.fillRect(cx - r * 0.38, top + r * 1.6, r * 0.76, r * 0.7);
+  ctx.beginPath();
+  ctx.ellipse(cx, top + r, r * 0.86, r, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#2b2420";
+  ctx.beginPath();
+  ctx.ellipse(cx, top + r * 0.62, r * 0.9, r * 0.66, 0, Math.PI, Math.PI * 2);
+  ctx.fill();
+  ctx.fillRect(cx - r * 0.9, top + r * 0.6, r * 0.18, r * 0.5);
+  ctx.fillRect(cx + r * 0.72, top + r * 0.6, r * 0.18, r * 0.5);
+}
+
+/**
+ * 사진이 오기 전 세워 두는 정장 차림 전신 실루엣 (PRD 4.8).
+ * wave면 오른손을 들어 환영하는 자세. 배경은 투명.
+ */
+export function suitFigureTexture(wave: boolean): THREE.CanvasTexture {
+  const W = 256;
+  const H = 640;
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d")!;
+  const cx = W / 2;
+  const suit = "#1f2a44";
+  const suitLight = "#2c3b5e";
+  // 다리와 구두
+  rr(ctx, cx - 44, 360, 40, 250, 10, "#18213a");
+  rr(ctx, cx + 4, 360, 40, 250, 10, "#18213a");
+  rr(ctx, cx - 50, 600, 50, 24, 10, "#111");
+  rr(ctx, cx + 2, 600, 50, 24, 10, "#111");
+  // 몸통(재킷)
+  const g = ctx.createLinearGradient(cx - 70, 0, cx + 70, 0);
+  g.addColorStop(0, suit);
+  g.addColorStop(0.5, suitLight);
+  g.addColorStop(1, suit);
+  rr(ctx, cx - 68, 140, 136, 250, 26, "");
+  ctx.fillStyle = g;
+  ctx.fill();
+  // 셔츠와 넥타이 (V자)
+  ctx.fillStyle = "#f7f7f5";
+  ctx.beginPath();
+  ctx.moveTo(cx - 26, 140);
+  ctx.lineTo(cx + 26, 140);
+  ctx.lineTo(cx, 235);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "#7a1f2b";
+  ctx.beginPath();
+  ctx.moveTo(cx - 8, 148);
+  ctx.lineTo(cx + 8, 148);
+  ctx.lineTo(cx + 11, 222);
+  ctx.lineTo(cx, 236);
+  ctx.lineTo(cx - 11, 222);
+  ctx.closePath();
+  ctx.fill();
+  // 단추
+  ctx.fillStyle = "#0f1526";
+  for (const y of [262, 300]) {
+    ctx.beginPath();
+    ctx.arc(cx, y, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // 왼팔(내림)
+  rr(ctx, cx - 92, 150, 34, 210, 16, suit);
+  ctx.fillStyle = "#e9c3a0";
+  ctx.beginPath();
+  ctx.arc(cx - 75, 368, 15, 0, Math.PI * 2);
+  ctx.fill();
+  // 오른팔
+  if (wave) {
+    ctx.save();
+    ctx.translate(cx + 66, 168);
+    ctx.rotate(-2.55);
+    rr(ctx, -17, 0, 34, 150, 16, suit);
+    ctx.fillStyle = "#e9c3a0";
+    ctx.beginPath();
+    ctx.ellipse(0, 166, 16, 20, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  } else {
+    rr(ctx, cx + 58, 150, 34, 210, 16, suit);
+    ctx.fillStyle = "#e9c3a0";
+    ctx.beginPath();
+    ctx.arc(cx + 75, 368, 15, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  drawHead(ctx, cx, 30, 52);
+  const tex = finish(canvas);
+  tex.anisotropy = 4;
+  return tex;
+}
+
+/** 부스 담당자 실루엣: 머리부터 허리까지, 존 색 조끼와 이름표 */
+export function staffPlaceholderTexture(color: string): THREE.CanvasTexture {
+  const W = 256;
+  const H = 300;
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d")!;
+  const cx = W / 2;
+  // 셔츠
+  rr(ctx, cx - 92, 128, 184, 200, 40, "#f4f1ec");
+  // 조끼
+  rr(ctx, cx - 92, 128, 64, 200, 30, color);
+  rr(ctx, cx + 28, 128, 64, 200, 30, color);
+  // 이름표
+  rr(ctx, cx + 38, 190, 44, 26, 4, "#ffffff");
+  ctx.fillStyle = shade(color, -0.25);
+  ctx.fillRect(cx + 42, 196, 36, 4);
+  ctx.fillRect(cx + 42, 204, 24, 4);
+  drawHead(ctx, cx, 6, 56);
+  return finish(canvas);
+}
+
+/** 말풍선 (입구 환영 인사) */
+export function bubbleTexture(text: string): THREE.CanvasTexture {
+  const W = 512;
+  const H = 200;
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d")!;
+  rr(ctx, 8, 8, W - 16, H - 60, 60, "#ffffff");
+  ctx.beginPath();
+  ctx.moveTo(W * 0.3, H - 56);
+  ctx.lineTo(W * 0.24, H - 8);
+  ctx.lineTo(W * 0.42, H - 56);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "#3b2a1a";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  fitFont(ctx, text, 800, 62, W - 80);
+  ctx.fillText(text, W / 2, (H - 52) / 2 + 4);
+  return finish(canvas);
+}
+
 /** 하늘: 위는 살구빛, 지평선은 크림색 */
 export function skyTexture(top: string, horizon: string): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
@@ -203,6 +436,20 @@ export function floorTileTexture(base: string, line: string, tiles = 4): THREE.C
       ctx.fillRect(i * step, j * step, step, step);
     }
   }
+  // 콘크리트 얼룩 (이음매 없이 반복)
+  const img = ctx.getImageData(0, 0, size, size);
+  const coarse = tileNoise(8, 5);
+  const fine = tileNoise(64, 9);
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const d = (coarse(x / size, y / size) - 0.5) * 14 + (fine(x / size, y / size) - 0.5) * 8;
+      const i = (y * size + x) * 4;
+      img.data[i] += d;
+      img.data[i + 1] += d;
+      img.data[i + 2] += d;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
   ctx.strokeStyle = line;
   ctx.lineWidth = 2;
   for (let i = 0; i <= tiles; i++) {

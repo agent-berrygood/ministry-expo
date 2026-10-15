@@ -84,6 +84,15 @@ if (nodeById.has("entrance")) {
 const joy = nodeById.get("n-booth-joy-sharing");
 if (!joy?.links.includes("n-booth-warm-meal")) errors.push("나눔마당 규칙: joy-sharing과 warm-meal 부스 노드가 직접 연결되어야 함");
 
+// 인물 자리 (PRD 4.9, 4.10): ID 중복 없음, 이동 지점을 가리지 않음
+if (!layout.figures?.entrance) errors.push("layout.figures.entrance 없음");
+const spots = layout.figures?.hidden ?? [];
+dupes(spots.map((s) => s.id), "숨은 목회자 자리");
+for (const s of spots) {
+  const near = layout.nodes.find((n) => Math.hypot(n.x - s.x, n.z - s.z) < 1.0);
+  if (near) errors.push(`숨은 목회자 자리 ${s.id}: 이동 지점 ${near.id}와 너무 가까움 (1 m 미만)`);
+}
+
 // 개인정보 의심 패턴 (경고)
 const PHONE = /\d{2,3}-\d{3,4}-\d{4}/;
 const TITLE = /[가-힣]{2,4}\s?(집사|권사|장로|목사|전도사|간사)/;

@@ -65,13 +65,40 @@ export interface NavNode {
   booth?: string;
 }
 
+/** 인물이 서는 자리 (PRD 4.8) */
+export interface FigureSpot {
+  id: string;
+  x: number;
+  z: number;
+}
+
 export interface Layout {
   booths: Record<string, BoothPlacement>;
   nodes: NavNode[];
+  figures: {
+    entrance: { x: number; z: number };
+    /** 숨은 목회자 자리. photos/_hidden/의 사진이 파일명 순서대로 앉는다 */
+    hidden: FigureSpot[];
+  };
+}
+
+/** photos/에서 자동 생성되는 인물 사진 목록 (public/data/figures.json) */
+export interface FigureImage {
+  src: string;
+  /** 가로 ÷ 세로 */
+  aspect: number;
+  caption: string;
+}
+
+export interface FigureManifest {
+  staff: Record<string, FigureImage>;
+  entrance: FigureImage | null;
+  hidden: FigureImage[];
 }
 
 export interface ExpoData {
   zones: Zone[];
   booths: Booth[];
   layout: Layout;
+  figures: FigureManifest;
 }

@@ -800,5 +800,53 @@
         "n-plaza-j3"
       ]
     }
-  ]
+  ],
+  "figures": {
+    "entrance": {
+      "x": -2.3,
+      "z": -8.2
+    },
+    "hidden": [
+      {
+        "id": "gate-pillar",
+        "x": 4.6,
+        "z": -11
+      },
+      {
+        "id": "plaza-tree",
+        "x": -4.6,
+        "z": -54.1
+      },
+      {
+        "id": "madang-west",
+        "x": -25.1,
+        "z": -25.5
+      },
+      {
+        "id": "warm-meal-kitchen",
+        "x": -9.6,
+        "z": -27.6
+      },
+      {
+        "id": "support-gap",
+        "x": -14.5,
+        "z": -53.6
+      },
+      {
+        "id": "edu1-east",
+        "x": 31.1,
+        "z": -45
+      },
+      {
+        "id": "youth-east",
+        "x": 42,
+        "z": -17.4
+      },
+      {
+        "id": "mission-east",
+        "x": 21,
+        "z": -69.4
+      }
+    ]
+  }
 }

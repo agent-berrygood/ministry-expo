@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { BOOTH, COLORS, STEAM } from "../config";
 import type { Booth, BoothPlacement, BoothProp, Zone } from "../data/types";
-import { MeshBuilder, deg, texturedPlane, vertexColorMaterial } from "./geometry";
+import { MeshBuilder, deg, texturedPlane, vertexColorMaterial, glowMaterial } from "./geometry";
 import { posterTexture, shade, signTexture, softDotTexture, stripeTexture, tint, woodSignTexture } from "./textures";
 
 // 부스 로컬 좌표: 원점이 바닥 중앙, 정면이 +z (PRD 3.3, 4.2)
@@ -49,23 +49,24 @@ function createStandard(booth: Booth, zone: Zone): BoothObject {
   const zoneColor = new THREE.Color(zone.color);
   const b = new MeshBuilder();
 
-  const light = tint(zone.color, 0xffffff, 0.55);
   const deep = shade(zone.color, -0.12);
-  // 바닥: 존 색 단상 + 안쪽 러그
-  b.rbox(w, 0.12, d, 0, 0.06, 0, light, 0.04);
-  b.box(w - 0.7, 0.01, d - 0.8, 0, 0.125, 0.05, tint(zone.color, 0xffffff, 0.7));
+  // 바닥: 나무 단상 + 존 색 러그
+  b.use("wood").rbox(w, 0.12, d, 0, 0.06, 0, 0xcaa47c, 0.04);
+  b.use("fabric").box(w - 0.7, 0.01, d - 0.8, 0, 0.125, 0.05, tint(zone.color, 0xffffff, 0.7));
   // 벽
-  b.box(w, h, t, 0, h / 2, -d / 2 + t / 2, COLORS.wall);
+  b.use("paint").box(w, h, t, 0, h / 2, -d / 2 + t / 2, COLORS.wall);
   b.box(w, 0.12, t + 0.04, 0, h - 0.06, -d / 2 + t / 2, zoneColor);
   for (const sx of [-1, 1]) {
     b.rbox(t, h, d * 0.62, sx * (w / 2 - t / 2), h / 2, -d / 2 + d * 0.31, COLORS.wall, 0.04);
     b.rbox(0.14, h + 0.3, 0.14, sx * (w / 2 - 0.07), (h + 0.3) / 2, d / 2 - 0.07, deep, 0.05);
     // 옆 벽 선반과 소품
     const sxIn = sx * (w / 2 - t - 0.17);
-    b.box(0.34, 0.04, 1.2, sxIn, 1.45, -d / 2 + 0.85, COLORS.wood);
+    b.use("wood").box(0.34, 0.04, 1.2, sxIn, 1.45, -d / 2 + 0.85, COLORS.wood);
+    b.use("paint");
     b.rbox(0.18, 0.24, 0.18, sxIn, 1.59, -d / 2 + 0.5, shade(zone.color, 0.12), 0.03);
     b.rbox(0.14, 0.32, 0.22, sxIn, 1.63, -d / 2 + 0.85, 0xfff1c9, 0.02);
-    b.cylinder(0.08, 0.06, 0.16, sxIn, 1.55, -d / 2 + 1.2, 0xc9b79c, 8);
+    b.use("stone").cylinder(0.08, 0.06, 0.16, sxIn, 1.55, -d / 2 + 1.2, 0xc9b79c, 8);
+    b.use("paint");
     b.sphere(0.12, sxIn, 1.7, -d / 2 + 1.2, 0x6aa84f);
   }
   // 간판 받침 (둥근 헤더)
@@ -78,15 +79,18 @@ function createStandard(booth: Booth, zone: Zone): BoothObject {
   // 안내 책자 꽂이
   const bx = -w / 2 + 0.55;
   const bz = d / 2 - 0.55;
-  b.rbox(0.42, 1.1, 0.24, bx, 0.12 + 0.55, bz, COLORS.woodDark, 0.03);
+  b.use("wood").rbox(0.42, 1.1, 0.24, bx, 0.12 + 0.55, bz, COLORS.woodDark, 0.03);
+  b.use("paint");
   for (let i = 0; i < 3; i++) b.box(0.32, 0.22, 0.02, bx, 0.55 + i * 0.3, bz + 0.13, [zone.color, 0xffffff, shade(zone.color, 0.2)][i]);
   // 화분
   const px = w / 2 - 0.5;
-  b.rbox(0.42, 0.45, 0.42, px, 0.12 + 0.22, d / 2 - 0.5, 0xd9c7a8, 0.06);
+  b.use("stone").rbox(0.42, 0.45, 0.42, px, 0.12 + 0.22, d / 2 - 0.5, 0xd9c7a8, 0.06);
+  b.use("paint");
   b.sphere(0.34, px, 0.86, d / 2 - 0.5, 0x6aa84f);
   b.sphere(0.24, px + 0.15, 1.05, d / 2 - 0.42, 0x7fb069);
   // 입구 매트
-  b.box(1.6, 0.012, 0.6, 0, 0.006, d / 2 + 0.45, deep);
+  b.use("fabric").box(1.6, 0.012, 0.6, 0, 0.006, d / 2 + 0.45, deep);
+  b.use("paint");
   addPropModel(b, booth.prop, zone.color, d);
 
   const bodyMat = vertexColorMaterial();
@@ -99,8 +103,9 @@ function createStandard(booth: Booth, zone: Zone): BoothObject {
   sign.position.set(0, h + 0.2, d / 2 + 0.04);
   group.add(sign);
 
-  const poster = texturedPlane(posterTexture(booth.name, PROP_ICON[booth.prop], zone.color, booth.audience || zone.name), 2.4, 1.8);
-  poster.position.set(0, 1.85, -d / 2 + t + 0.012);
+  const poster = texturedPlane(posterTexture(booth.name, PROP_ICON[booth.prop], zone.color, booth.audience || zone.name), 2.0, 1.5);
+  // 오른쪽 데스크 뒤에 담당자가 서므로 포스터는 왼쪽 위로 비킨다 (PRD 4.8)
+  poster.position.set(-0.4, 2.1, -d / 2 + t + 0.012);
   group.add(poster);
 
   return {
@@ -161,7 +166,7 @@ function createStall(booth: Booth, zone: Zone): BoothObject {
   const isMeal = booth.id === "warm-meal";
 
   // 마루, 뒷벽, 기둥
-  b.box(w, 0.14, d, 0, 0.07, 0, 0xd8b88f);
+  b.use("wood").box(w, 0.14, d, 0, 0.07, 0, 0xd8b88f);
   b.box(w, 2.5, 0.14, 0, 1.25 + 0.14, -d / 2 + 0.07, 0xf3e3c7);
   b.box(w, 0.12, 0.3, 0, 1.6, -d / 2 + 0.25, wood);
   b.box(w, 0.12, 0.3, 0, 2.2, -d / 2 + 0.25, wood);
@@ -173,11 +178,13 @@ function createStall(booth: Booth, zone: Zone): BoothObject {
 
   // 조리대
   const cz = d / 2 - 1.0;
-  b.box(w * 0.72, 0.95, 0.85, 0, 0.14 + 0.475, cz, shade(zone.color, -0.05));
+  b.use("paint").box(w * 0.72, 0.95, 0.85, 0, 0.14 + 0.475, cz, shade(zone.color, -0.05));
+  b.use("wood");
   b.box(w * 0.74, 0.07, 0.95, 0, 1.12, cz, wood);
   const top = 1.155;
 
   // 철판과 전
+  b.use("paint");
   const gx = -1.5;
   b.box(1.5, 0.06, 0.62, gx, top + 0.03, cz, 0x2f2f33);
   b.box(1.56, 0.04, 0.68, gx, top + 0.005, cz, 0x55555b);
@@ -214,14 +221,15 @@ function createStall(booth: Booth, zone: Zone): BoothObject {
   }
 
   // 앞마당 낮은 상과 의자
+  b.use("wood");
   for (const tx of [-2.2, 2.2]) {
     const tz = d / 2 + 1.6;
     b.box(1.3, 0.06, 0.8, tx, 0.45, tz, wood);
     for (const lx of [-0.55, 0.55]) for (const lz of [-0.32, 0.32]) b.box(0.06, 0.42, 0.06, tx + lx, 0.21, tz + lz, woodDark);
-    for (const sx of [-0.9, 0.9]) b.cylinder(0.2, 0.2, 0.36, tx + sx, 0.18, tz, 0x6b8f71, 10);
+    for (const sx of [-0.9, 0.9]) b.use("fabric").cylinder(0.2, 0.2, 0.36, tx + sx, 0.18, tz, 0x6b8f71, 10).use("wood");
   }
   // 앞마당 바닥 깔개
-  b.box(w + 1, 0.02, 3.0, 0, 0.03, d / 2 + 1.6, 0xf2d7b0);
+  b.use("fabric").box(w + 1, 0.02, 3.0, 0, 0.03, d / 2 + 1.6, 0xf2d7b0);
 
   const bodyMat = vertexColorMaterial();
   const body = b.build(bodyMat);
@@ -255,7 +263,7 @@ function createStall(booth: Booth, zone: Zone): BoothObject {
     const sag = Math.sin(t * Math.PI) * 0.35;
     bulbs.sphere(0.07, x, h - 0.25 - sag, d / 2 + 0.05, COLORS.lantern);
   }
-  const bulbMesh = bulbs.build(new THREE.MeshBasicMaterial({ vertexColors: true }));
+  const bulbMesh = bulbs.build(glowMaterial());
   group.add(bulbMesh);
 
   // 따뜻한 조명

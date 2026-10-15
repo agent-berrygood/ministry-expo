@@ -1,4 +1,4 @@
-import type { Booth, ExpoData, Layout, Zone } from "./types";
+import type { Booth, ExpoData, FigureManifest, Layout, Zone } from "./types";
 
 async function getJson<T>(file: string): Promise<T> {
   const res = await fetch(`${import.meta.env.BASE_URL}data/${file}`);
@@ -7,13 +7,15 @@ async function getJson<T>(file: string): Promise<T> {
 }
 
 export async function loadExpoData(): Promise<ExpoData> {
-  const [zones, booths, layout] = await Promise.all([
+  const [zones, booths, layout, figures] = await Promise.all([
     getJson<Zone[]>("zones.json"),
     getJson<Booth[]>("booths.json"),
     getJson<Layout>("layout.json"),
+    // 생성물이라 없을 수 있다. 없으면 모든 자리에 실루엣이 선다.
+    getJson<FigureManifest>("figures.json").catch((): FigureManifest => ({ staff: {}, entrance: null, hidden: [] })),
   ]);
   zones.sort((a, b) => a.order - b.order);
-  return { zones, booths, layout };
+  return { zones, booths, layout, figures };
 }
 
 export class ExpoIndex {

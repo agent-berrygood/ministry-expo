@@ -1,8 +1,14 @@
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import { BOOTH, CAMERA, COLORS, LIGHT } from "../config";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { GTAOPass } from "three/examples/jsm/postprocessing/GTAOPass.js";
+import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { BOOTH, CAMERA, COLORS, LIGHT, POST } from "../config";
 import type { ExpoIndex } from "../data/load";
 import { createBooth, type BoothObject } from "./boothFactory";
+import { FigureLayer } from "./figures";
 import { ShadowBlobs, addBalloons, addOverhead, addPeople, addPlazaFurniture, streetsOf } from "./decor";
 import { MeshBuilder, deg, texturedPlane, vertexColorMaterial } from "./geometry";
 import { floorTileTexture, signTexture, skyTexture, tint } from "./textures";
@@ -16,10 +22,14 @@ export class World {
   readonly booths = new Map<string, BoothObject>();
   readonly boothPickables: THREE.Object3D[] = [];
   readonly ground: THREE.Mesh;
+  readonly figures: FigureLayer;
   private ticks: TickFn[] = [];
   private clock = new THREE.Clock();
   private hovered: string | null = null;
   private blobs = new ShadowBlobs();
+  /** 데스크톱에서만 쓰는 후처리 (주변광 차폐 + 블룸) */
+  private composer: EffectComposer | null = null;
+  private aoPass: GTAOPass | null = null;
   readonly lowPower: boolean;
 
   constructor(private container: HTMLElement, private index: ExpoIndex) {
@@ -35,6 +45,7 @@ export class World {
 
     this.camera = new THREE.PerspectiveCamera(CAMERA.fovLandscape, 1, CAMERA.near, CAMERA.far);
     this.camera.rotation.order = "YXZ";
+    if (!this.lowPower) this.setupPost();
 
     this.scene.background = skyTexture(COLORS.skyTop, COLORS.skyHorizon);
     this.scene.fog = new THREE.Fog(COLORS.sky, 50, 140);
@@ -53,6 +64,7 @@ export class World {
     this.addEntranceGate();
     this.addPlaza();
     this.addBooths();
+    this.figures = new FigureLayer(this.scene, index, this.booths, this.blobs);
     addOverhead(this.scene, nodes);
     addPeople(this.scene, index, this.blobs);
     this.blobs.build(this.scene);
@@ -73,7 +85,23 @@ export class World {
   frame(dt: number): void {
     for (const fn of this.ticks) fn(dt);
     for (const b of this.booths.values()) b.update?.(dt, this.camera.position);
-    this.renderer.render(this.scene, this.camera);
+    this.figures.update(dt, this.camera.position);
+    if (this.composer) this.composer.render(dt);
+    else this.renderer.render(this.scene, this.camera);
+  }
+
+  private setupPost(): void {
+    const target = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
+    const composer = new EffectComposer(this.renderer, target);
+    composer.addPass(new RenderPass(this.scene, this.camera));
+    const ao = new GTAOPass(this.scene, this.camera, 1, 1);
+    ao.blendIntensity = POST.aoIntensity;
+    ao.updateGtaoMaterial({ radius: POST.aoRadius, distanceFallOff: 1, thickness: 1 });
+    composer.addPass(ao);
+    composer.addPass(new UnrealBloomPass(new THREE.Vector2(1, 1), POST.bloomStrength, POST.bloomRadius, POST.bloomThreshold));
+    composer.addPass(new OutputPass());
+    this.composer = composer;
+    this.aoPass = ao;
   }
 
   setHover(id: string | null): void {
@@ -95,6 +123,8 @@ export class World {
     const w = this.container.clientWidth;
     const h = this.container.clientHeight;
     this.renderer.setSize(w, h);
+    this.composer?.setSize(w, h);
+    this.aoPass?.setSize(w * Math.min(devicePixelRatio, 2), h * Math.min(devicePixelRatio, 2));
     this.camera.aspect = w / h;
     this.camera.fov = w < h ? CAMERA.fovPortrait : CAMERA.fovLandscape;
     if (this.rightInset > 0) this.camera.setViewOffset(w, h, this.rightInset / 2, 0, w, h);
@@ -125,9 +155,10 @@ export class World {
   }
 
   private addGround(): THREE.Mesh {
+    // 2 m 각 콘크리트 타일, 살짝 광택이 있어 환경광이 은은하게 비친다
     const tex = floorTileTexture(COLORS.ground, COLORS.groundLine, 4);
     tex.repeat.set(260 / 8, 260 / 8);
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(260, 260), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.92 }));
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(260, 260), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.6 }));
     ground.rotation.x = -Math.PI / 2;
     ground.position.z = -40;
     ground.receiveShadow = true;
@@ -141,7 +172,7 @@ export class World {
     const { nodes } = this.index.data.layout;
     const b = new MeshBuilder();
     const carpet = (cx: number, cz: number, w: number, d: number, alongX: boolean) => {
-      b.box(w, 0.02, d, cx, 0.01, cz, COLORS.street);
+      b.use("fabric").box(w, 0.02, d, cx, 0.01, cz, COLORS.street);
       // 양쪽 테두리 띠
       for (const s of [-1, 1]) {
         if (alongX) b.box(w, 0.024, 0.18, cx, 0.012, cz + s * (d / 2 - 0.25), COLORS.streetEdge);
@@ -156,7 +187,8 @@ export class World {
     for (let z = -14; z > zMin + 4; z -= 9) {
       if ([-20, -48, -72].some((rz) => Math.abs(rz - z) < 5)) continue;
       for (const x of [-2.9, 2.9]) {
-        b.rbox(0.9, 0.55, 0.9, x, 0.28, z, 0xd9c7a8, 0.08);
+        b.use("stone").rbox(0.9, 0.55, 0.9, x, 0.28, z, 0xd9c7a8, 0.08);
+        b.use("paint");
         b.cylinder(0.07, 0.1, 1.3, x, 1.1, z, 0x7a5232, 6);
         b.sphere(0.7, x, 2.1, z, 0x7fb069);
         b.sphere(0.5, x + 0.3, 1.85, z + 0.15, 0x8cbf74);
@@ -171,7 +203,7 @@ export class World {
 
   private addZoneFloorsAndBanners(): void {
     const { layout } = this.index.data;
-    const floors = new MeshBuilder();
+    const floors = new MeshBuilder().use("fabric");
     for (const zone of this.index.data.zones) {
       const booths = this.index.boothsInZone(zone.id).filter((bt) => bt.template === "standard");
       if (booths.length === 0) continue;
@@ -223,7 +255,7 @@ export class World {
   private addMadang(): void {
     const node = this.index.data.layout.nodes.find((n) => n.id === "n-plaza-madang");
     if (!node) return;
-    const b = new MeshBuilder();
+    const b = new MeshBuilder().use("stone");
     b.box(20, 0.016, 13, node.x, 0.008, node.z - 5.2, 0xf6dcb8);
     const mesh = b.build(vertexColorMaterial());
     mesh.receiveShadow = true;
@@ -244,7 +276,7 @@ export class World {
     }
     b.rbox(8.6, 1.4, 0.8, 0, 4.4, 0, 0xfffaf2, 0.18);
     // 환영 카펫
-    b.box(3.4, 0.03, 9, 0, 0.03, 4.6, 0xb4472e);
+    b.use("fabric").box(3.4, 0.03, 9, 0, 0.03, 4.6, 0xb4472e);
     b.box(3.0, 0.035, 8.6, 0, 0.032, 4.6, 0xd2603f);
     const body = b.build(vertexColorMaterial());
     body.castShadow = true;
@@ -264,7 +296,7 @@ export class World {
   private addPlaza(): void {
     const node = this.index.data.layout.nodes.find((n) => n.id === "n-plaza-center");
     if (!node) return;
-    const b = new MeshBuilder();
+    const b = new MeshBuilder().use("stone");
     b.cylinder(7.2, 7.2, 0.03, node.x, 0.02, node.z, 0xe9d9bd, 48);
     b.cylinder(6.6, 6.6, 0.035, node.x, 0.025, node.z, 0xf6eddc, 48);
     // 방사형 무늬

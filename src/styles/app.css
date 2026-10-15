@@ -176,6 +176,55 @@ button {
   opacity: 0;
 }
 
+/* ---------- 숨은 목회자 찾기 ---------- */
+
+.hunt-chip {
+  position: absolute;
+  top: calc(max(var(--space-3), env(safe-area-inset-top)) + 64px);
+  left: var(--space-3);
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--shadow);
+  font-size: var(--fs-s);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hunt-chip.is-done {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: transparent;
+}
+
+.toast {
+  position: absolute;
+  left: 50%;
+  top: calc(max(var(--space-3), env(safe-area-inset-top)) + 110px);
+  transform: translate(-50%, -8px);
+  max-width: calc(100% - 2 * var(--space-4));
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-m);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  font-weight: 700;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none !important;
+  transition: opacity 0.25s, transform 0.25s;
+  z-index: 7;
+}
+
+.toast.is-shown {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
 /* ---------- 미니맵 ---------- */
 
 .minimap {
@@ -492,6 +541,7 @@ body.panel-open .minimap {
 
 @media (prefers-reduced-motion: reduce) {
   .panel,
+  .toast,
   .hint {
     transition: none;
   }

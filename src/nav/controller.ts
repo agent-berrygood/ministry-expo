@@ -224,11 +224,11 @@ export class NavController {
       el.style.cursor = "pointer";
       return;
     }
-    const boothHit = this.raycaster.intersectObjects(this.world.boothPickables, false)[0];
-    const id = (boothHit?.object.userData.boothId as string | undefined) ?? null;
+    const hit = this.raycaster.intersectObjects([...this.world.boothPickables, ...this.world.figures.pickables], false)[0];
+    const id = (hit?.object.userData.boothId as string | undefined) ?? null;
     this.world.setHover(id);
     events.emit("booth:hover", { id });
-    el.style.cursor = id ? "pointer" : "";
+    el.style.cursor = id || hit?.object.userData.figureId ? "pointer" : "";
   }
 
   private click(e: PointerEvent, el: HTMLElement): void {
@@ -238,9 +238,14 @@ export class NavController {
       const a = this.raycaster.intersectObjects(this.arrowPickables, false)[0];
       if (a) return this.goTo(a.object.userData.toNode as string);
     }
-    const hits = this.raycaster.intersectObjects([...this.world.boothPickables, this.world.ground], false);
+    const hits = this.raycaster.intersectObjects([...this.world.boothPickables, ...this.world.figures.pickables, this.world.ground], false);
     const first = hits[0];
     if (!first) return;
+    const figureId = first.object.userData.figureId as string | undefined;
+    if (figureId) {
+      events.emit("figure:click", { id: figureId });
+      return;
+    }
     const boothId = first.object.userData.boothId as string | undefined;
     if (boothId) {
       events.emit("booth:select", { id: boothId });
