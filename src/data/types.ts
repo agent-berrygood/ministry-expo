@@ -66,7 +66,8 @@ export interface NavNode {
 }
 
 /**
- * 교역자가 서는 자리 (PRD 4.10). booth가 있으면 그 부스 데스크(조리대) 뒤, 없으면 x·z 좌표.
+ * 교역자가 서는 자리 (PRD 4.10). booth가 있으면 그 부스 데스크(조리대) 뒤,
+ * desk가 있으면 x·z에 그 존의 안내석을 두고 그 뒤, 둘 다 없으면 x·z 좌표(허리를 가릴 물건 뒤여야 한다).
  * photos/_clergy/{id}_{이름 직분}.png 사진이 이 자리에 선다.
  */
 export interface FigureSpot {
@@ -74,6 +75,8 @@ export interface FigureSpot {
   booth?: string;
   /** booth 기준 데스크 뒤 가로 위치(부스 로컬 x, m) */
   offset?: number;
+  /** 이 존의 안내석(카테고리 담당 교역자) */
+  desk?: string;
   x?: number;
   z?: number;
 }

@@ -105,7 +105,6 @@ export const FIGURE = {
   /** 교역자 사진(머리~허벅지)의 위·아래 끝. 아래 끝은 데스크·조리대·안내석(1.0~1.15 m)에 가려진다 */
   clergyTop: 1.72,
   clergyBottom: 0.72,
-  plazaDesk: { x: 5.0, z: -43.8 },
   /** 실루엣 텍스처 비율 (가로 ÷ 세로) */
   suitAspect: 256 / 640,
   staffAspect: 256 / 300,
@@ -122,6 +121,8 @@ export const DECOR = {
   blobY: 0.035,
   /** 이동 지점에서 이 거리 안에는 사람을 세우지 않는다 */
   personKeepOut: 1.2,
+  /** 교역자 안내석·환영 데스크에서 이 거리 안에는 사람을 세우지 않는다 */
+  deskKeepOut: 4,
   /** 부스 앞 손님 수 확률: 0명 / 1명 (나머지는 2명) */
   visitorNone: 0.6,
   visitorOne: 0.32,

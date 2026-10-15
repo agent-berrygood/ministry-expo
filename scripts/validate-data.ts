@@ -90,6 +90,7 @@ const spots = layout.figures?.clergy ?? [];
 dupes(spots.map((s) => s.id), "교역자 자리");
 for (const s of spots) {
   if (!ID.test(s.id)) errors.push(`교역자 자리 ID 형식 오류(kebab-case): ${s.id}`);
+  if (s.desk && !zoneIds.has(s.desk)) errors.push(`교역자 자리 ${s.id}: 알 수 없는 존 ${s.desk}`);
   if (s.booth) {
     if (!boothIds.has(s.booth)) errors.push(`교역자 자리 ${s.id}: 알 수 없는 부스 ${s.booth}`);
   } else if (s.x === undefined || s.z === undefined) {

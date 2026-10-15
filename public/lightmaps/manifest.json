@@ -1,7 +1,7 @@
 {
-  "atlasSize": 2048,
-  "groundSize": 1024,
-  "samples": 32,
+  "atlasSize": 4096,
+  "groundSize": 2048,
+  "samples": 128,
   "ground": {
     "x0": -50,
     "x1": 60,
@@ -9,8 +9,8 @@
     "z1": 12
   },
   "scale": {
-    "ground": 1.8016256093978882,
-    "atlas": 2.0993669033050537
+    "ground": 1.803093433380127,
+    "atlas": 2.090381383895874
   },
   "flat": [
     "ground-venue",
@@ -67,171 +67,187 @@
     },
     "plaza-furniture": {
       "offset": 23280,
-      "count": 6048
+      "count": 8064
     },
     "booth-galilee": {
-      "offset": 29328,
+      "offset": 31344,
       "count": 6468
     },
     "booth-bethesda": {
-      "offset": 35796,
+      "offset": 37812,
       "count": 6468
     },
     "booth-worship-support": {
-      "offset": 42264,
+      "offset": 44280,
       "count": 6468
     },
     "booth-zion-choir": {
-      "offset": 48732,
+      "offset": 50748,
       "count": 6228
     },
     "booth-gloria-choir": {
-      "offset": 54960,
+      "offset": 56976,
       "count": 6228
     },
     "booth-breathing-band": {
-      "offset": 61188,
+      "offset": 63204,
       "count": 6228
     },
     "booth-overseas-1": {
-      "offset": 67416,
+      "offset": 69432,
       "count": 6468
     },
     "booth-overseas-2": {
-      "offset": 73884,
+      "offset": 75900,
       "count": 6468
     },
     "booth-youth-mission": {
-      "offset": 80352,
+      "offset": 82368,
       "count": 6468
     },
     "booth-preschool": {
-      "offset": 86820,
+      "offset": 88836,
       "count": 6192
     },
     "booth-infant": {
-      "offset": 93012,
+      "offset": 95028,
       "count": 6192
     },
     "booth-kindergarten": {
-      "offset": 99204,
+      "offset": 101220,
       "count": 6192
     },
     "booth-children": {
-      "offset": 105396,
+      "offset": 107412,
       "count": 6192
     },
     "booth-primary": {
-      "offset": 111588,
+      "offset": 113604,
       "count": 6192
     },
     "booth-junior": {
-      "offset": 117780,
+      "offset": 119796,
       "count": 6192
     },
     "booth-middle": {
-      "offset": 123972,
+      "offset": 125988,
       "count": 6192
     },
     "booth-high": {
-      "offset": 130164,
+      "offset": 132180,
       "count": 6192
     },
     "booth-wonderful-senior": {
-      "offset": 136356,
+      "offset": 138372,
       "count": 6192
     },
     "booth-adult-edu": {
-      "offset": 142548,
+      "offset": 144564,
       "count": 6192
     },
     "booth-culture-pr": {
-      "offset": 148740,
+      "offset": 150756,
       "count": 6192
     },
     "booth-young-adult-1": {
-      "offset": 154932,
+      "offset": 156948,
       "count": 6468
     },
     "booth-young-adult-2": {
-      "offset": 161400,
+      "offset": 163416,
       "count": 6468
     },
     "booth-eoullim": {
-      "offset": 167868,
+      "offset": 169884,
       "count": 6468
     },
     "booth-newcomer": {
-      "offset": 174336,
+      "offset": 176352,
       "count": 6468
     },
     "booth-funeral": {
-      "offset": 180804,
+      "offset": 182820,
       "count": 6468
     },
     "booth-warm-meal": {
-      "offset": 187272,
+      "offset": 189288,
       "count": 4896
     },
     "booth-warm-meal-awning": {
-      "offset": 192168,
+      "offset": 194184,
       "count": 6
     },
     "booth-warm-meal-valance": {
-      "offset": 192174,
+      "offset": 194190,
       "count": 6
     },
     "booth-joy-sharing": {
-      "offset": 192180,
+      "offset": 194196,
       "count": 3348
     },
     "booth-joy-sharing-awning": {
-      "offset": 195528,
+      "offset": 197544,
       "count": 6
     },
     "booth-joy-sharing-valance": {
-      "offset": 195534,
+      "offset": 197550,
       "count": 6
     },
     "booth-hope-sharing": {
-      "offset": 195540,
+      "offset": 197556,
       "count": 6156
     },
     "booth-love-sharing": {
-      "offset": 201696,
+      "offset": 203712,
       "count": 6156
     },
     "booth-finance": {
-      "offset": 207852,
+      "offset": 209868,
       "count": 6084
     },
     "booth-intercession": {
-      "offset": 213936,
+      "offset": 215952,
       "count": 6468
     },
     "booth-facilities": {
-      "offset": 220404,
+      "offset": 222420,
       "count": 6084
     },
     "booth-transport": {
-      "offset": 226488,
+      "offset": 228504,
       "count": 6156
     },
     "welcome-desk": {
-      "offset": 232644,
+      "offset": 234660,
       "count": 1452
     },
-    "plaza-desk": {
-      "offset": 234096,
-      "count": 1200
+    "worship-desk": {
+      "offset": 236112,
+      "count": 648
+    },
+    "mission-desk": {
+      "offset": 236760,
+      "count": 648
+    },
+    "edu1-desk": {
+      "offset": 237408,
+      "count": 648
+    },
+    "edu2-desk": {
+      "offset": 238056,
+      "count": 648
+    },
+    "support-desk": {
+      "offset": 238704,
+      "count": 648
     },
     "overhead-frame": {
-      "offset": 235296,
-      "count": 9144
+      "offset": 239352,
+      "count": 10872
     },
     "people": {
-      "offset": 244440,
-      "count": 51840
+      "offset": 250224,
+      "count": 55296
     }
   },
   "files": {
@@ -245,5 +261,5 @@
     }
   },
   "uv": "lightmaps/atlas-uv.bin",
-  "bakedAt": "2026-10-15T05:09:29.476Z"
+  "bakedAt": "2026-10-15T05:32:35.603Z"
 }

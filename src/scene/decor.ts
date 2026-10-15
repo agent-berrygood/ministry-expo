@@ -151,8 +151,11 @@ export function addPeople(scene: THREE.Scene, index: ExpoIndex, blobs: ShadowBlo
   const shirts = DECOR.shirtColors;
   const skins = DECOR.skinColors;
 
+  // 교역자 안내석·환영 데스크 앞은 비워 둔다 (사람이 가리지 않게)
+  const desks = [index.data.layout.figures.entrance, ...index.data.layout.figures.clergy.filter((c) => c.desk)].map((d) => ({ x: d.x ?? 0, z: d.z ?? 0 }));
   const blocked = (x: number, z: number) =>
     nodes.some((n) => Math.hypot(n.x - x, n.z - z) < DECOR.personKeepOut) ||
+    desks.some((d) => Math.hypot(d.x - x, d.z - z) < DECOR.deskKeepOut) ||
     // 통로 지점에서 나가는 화살표 자리(3 m 앞)
     nodes.some((n) => !n.booth && Math.abs(n.x - x) < 1.2 && Math.abs(n.z - z) < 3.6 && Math.abs(n.z - z) > 0.01 && n.x !== 0);
 
@@ -213,11 +216,10 @@ export function addPeople(scene: THREE.Scene, index: ExpoIndex, blobs: ShadowBlo
   scene.add(markBake(b.build(vertexColorMaterial({ roughness: 0.9 })), "atlas", "people"));
 }
 
-/** 중앙 광장: 세 모서리 나무 화단 + 벤치 */
+/** 중앙 광장: 네 모서리 나무 화단 + 벤치 */
 export function addPlazaFurniture(scene: THREE.Scene, cx: number, cz: number, blobs: ShadowBlobs): void {
   const b = new MeshBuilder();
-  // 남동쪽 자리는 교역자 원형 안내석(FIGURE.plazaDesk)이 쓴다
-  for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1]]) {
+  for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
     const x = cx + sx * 4.6;
     const z = cz + sz * 4.6;
     b.use("stone").cylinder(1.1, 1.2, 0.55, x, 0.28, z, 0xd9c7a8, 20);

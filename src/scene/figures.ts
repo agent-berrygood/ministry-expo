@@ -50,7 +50,7 @@ export class FigureLayer {
     // 입구: 담임목사님이 환영 데스크 뒤에서 맞이한다
     const e = layout.figures.entrance;
     this.addWelcomeDesk(e.x, e.z);
-    const host = this.place(e.x, FIGURE.clergyBottom, e.z - 0.35, FIGURE.clergyTop - FIGURE.clergyBottom, manifest.entrance ?? undefined, {
+    const host = this.place(e.x - 0.15, FIGURE.clergyBottom, e.z - 0.35, FIGURE.clergyTop - FIGURE.clergyBottom, manifest.entrance ?? undefined, {
       key: "suit-wave",
       make: () => suitFigureTexture(true),
       aspect: FIGURE.suitAspect,
@@ -58,7 +58,6 @@ export class FigureLayer {
     this.tag(host, "entrance", manifest.entrance?.caption ?? "");
 
     // 교역자: 자리마다 사진이 있을 때만 선다
-    let hasPlazaDesk = false;
     for (const spot of layout.figures.clergy) {
       const photo = manifest.clergy[spot.id];
       if (!photo) continue;
@@ -72,10 +71,15 @@ export class FigureLayer {
         const world = this.behindDesk(obj, booth.size, spot.offset ?? 0, zFromFront);
         x = world.x;
         z = world.z;
+      } else if (spot.desk) {
+        const zone = index.zoneById.get(spot.desk);
+        if (!zone) continue;
+        this.addZoneDesk(spot.x ?? 0, spot.z ?? 0, zone.name, zone.color, spot.id);
+        x = spot.x ?? 0;
+        z = (spot.z ?? 0) - 0.35;
       } else {
         x = spot.x ?? 0;
         z = spot.z ?? 0;
-        hasPlazaDesk = true;
       }
       const board = this.place(x, FIGURE.clergyBottom, z, FIGURE.clergyTop - FIGURE.clergyBottom, photo, {
         key: "suit",
@@ -84,7 +88,6 @@ export class FigureLayer {
       });
       this.tag(board, spot.id, photo.caption);
     }
-    if (hasPlazaDesk) this.addPlazaDesk(FIGURE.plazaDesk.x, FIGURE.plazaDesk.z);
   }
 
   /** 누르면 보여 줄 이름 ("오대식 목사"). 없으면 빈 문자열 */
@@ -113,9 +116,10 @@ export class FigureLayer {
     const b = new MeshBuilder();
     b.use("paint").rbox(1.5, 1.0, 0.55, x, 0.5, z, 0x7c3aed, 0.06);
     b.use("wood").rbox(1.62, 0.06, 0.66, x, 1.03, z, COLORS.wood, 0.02);
-    b.use("paint").rbox(0.28, 0.3, 0.28, x + 0.55, 1.21, z - 0.05, 0xfffaf2, 0.04);
-    b.sphere(0.2, x + 0.55, 1.5, z - 0.05, 0xf4a3b8);
-    b.sphere(0.16, x + 0.42, 1.44, z + 0.02, 0xfff1c9);
+    // 꽃병은 왼쪽 끝에 (데스크 뒤에 두 분이 선다)
+    b.use("paint").rbox(0.28, 0.3, 0.28, x - 0.6, 1.21, z - 0.05, 0xfffaf2, 0.04);
+    b.sphere(0.2, x - 0.6, 1.5, z - 0.05, 0xf4a3b8);
+    b.sphere(0.16, x - 0.47, 1.44, z + 0.02, 0xfff1c9);
     const desk = markBake(b.build(vertexColorMaterial()), "atlas", "welcome-desk");
     this.scene.add(desk);
     this.props.push(desk);
@@ -124,27 +128,17 @@ export class FigureLayer {
     this.scene.add(sign);
   }
 
-  /** 광장 원형 안내석: 어느 쪽에서 봐도 안쪽에 선 사람의 허리 아래를 가린다 */
-  private addPlazaDesk(x: number, z: number): void {
+  /** 존 안내석: 카테고리 담당 교역자가 뒤에 선다. 앞면(+z)이 통로를 본다 */
+  private addZoneDesk(x: number, z: number, name: string, color: string, id: string): void {
     const b = new MeshBuilder();
-    const ring = new THREE.LatheGeometry(
-      [new THREE.Vector2(0.95, 0), new THREE.Vector2(1.25, 0), new THREE.Vector2(1.25, 1.0), new THREE.Vector2(0.95, 1.0)],
-      40,
-    );
-    b.use("paint").add(ring, 0xf6f0e6, new THREE.Matrix4().makeTranslation(x, 0, z));
-    b.use("wood").add(new THREE.RingGeometry(0.9, 1.32, 40).rotateX(-Math.PI / 2), COLORS.wood, new THREE.Matrix4().makeTranslation(x, 1.02, z));
-    b.use("paint").add(new THREE.CylinderGeometry(1.27, 1.27, 0.08, 40, 1, true), 0x334155, new THREE.Matrix4().makeTranslation(x, 0.86, z));
-    const desk = markBake(b.build(vertexColorMaterial({ side: THREE.DoubleSide })), "atlas", "plaza-desk");
+    b.use("paint").rbox(1.4, 1.0, 0.55, x, 0.5, z, color, 0.06);
+    b.use("wood").rbox(1.52, 0.06, 0.66, x, 1.03, z, COLORS.wood, 0.02);
+    const desk = markBake(b.build(vertexColorMaterial()), "atlas", id);
     this.scene.add(desk);
     this.props.push(desk);
-    const tex = signTexture("안내", "#334155", { aspect: 0.7 / 0.3 });
-    for (let i = 0; i < 4; i++) {
-      const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
-      const s = texturedPlane(tex, 0.7, 0.3);
-      s.position.set(x + Math.sin(a) * 1.262, 0.55, z + Math.cos(a) * 1.262);
-      s.rotation.y = a;
-      this.scene.add(s);
-    }
+    const sign = texturedPlane(signTexture(name, color, { aspect: 1.2 / 0.32 }), 1.2, 0.32);
+    sign.position.set(x, 0.62, z + 0.281);
+    this.scene.add(sign);
   }
 
   private place(

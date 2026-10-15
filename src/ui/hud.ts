@@ -7,6 +7,7 @@ const PLACE_NAMES: Record<string, string> = {
   entrance: "입구",
   "n-plaza-center": "중앙 광장",
   "n-plaza-madang": "나눔마당",
+  "n-plaza-welcome": "입구 환영",
 };
 
 export class Hud {
