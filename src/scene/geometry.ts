@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
 // 드로우콜을 줄이려고(PRD 8장) 단색 도형은 정점 색으로 칠해서 하나로 합친다.
@@ -26,6 +27,26 @@ export class MeshBuilder {
 
   box(w: number, h: number, d: number, x: number, y: number, z: number, color: THREE.ColorRepresentation, rotY = 0): this {
     return this.add(new THREE.BoxGeometry(w, h, d), color, at(x, y, z, rotY));
+  }
+
+  /** 모서리가 둥근 상자. 일러스트풍의 부드러운 인상을 준다. */
+  rbox(w: number, h: number, d: number, x: number, y: number, z: number, color: THREE.ColorRepresentation, radius = 0.06, rotY = 0): this {
+    const r = Math.min(radius, w / 2.01, h / 2.01, d / 2.01);
+    return this.add(new RoundedBoxGeometry(w, h, d, 1, r), color, at(x, y, z, rotY));
+  }
+
+  capsule(r: number, len: number, x: number, y: number, z: number, color: THREE.ColorRepresentation): this {
+    return this.add(new THREE.CapsuleGeometry(r, len, 3, 8), color, at(x, y, z));
+  }
+
+  /** 아래로 늘어진 삼각 깃발 (a→b 사이에 걸림) */
+  pennant(ax: number, az: number, bx: number, bz: number, y: number, drop: number, color: THREE.ColorRepresentation): this {
+    const geo = new THREE.BufferGeometry();
+    const mx = (ax + bx) / 2;
+    const mz = (az + bz) / 2;
+    geo.setAttribute("position", new THREE.Float32BufferAttribute([ax, y, az, mx, y - drop, mz, bx, y, bz], 3));
+    geo.computeVertexNormals();
+    return this.add(geo, color);
   }
 
   cylinder(rTop: number, rBottom: number, h: number, x: number, y: number, z: number, color: THREE.ColorRepresentation, segments = 12): this {

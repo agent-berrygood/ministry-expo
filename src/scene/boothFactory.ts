@@ -49,21 +49,44 @@ function createStandard(booth: Booth, zone: Zone): BoothObject {
   const zoneColor = new THREE.Color(zone.color);
   const b = new MeshBuilder();
 
-  b.box(w, 0.1, d, 0, 0.05, 0, tint(zone.color, 0xffffff, 0.55));
+  const light = tint(zone.color, 0xffffff, 0.55);
+  const deep = shade(zone.color, -0.12);
+  // 바닥: 존 색 단상 + 안쪽 러그
+  b.rbox(w, 0.12, d, 0, 0.06, 0, light, 0.04);
+  b.box(w - 0.7, 0.01, d - 0.8, 0, 0.125, 0.05, tint(zone.color, 0xffffff, 0.7));
+  // 벽
   b.box(w, h, t, 0, h / 2, -d / 2 + t / 2, COLORS.wall);
+  b.box(w, 0.12, t + 0.04, 0, h - 0.06, -d / 2 + t / 2, zoneColor);
   for (const sx of [-1, 1]) {
-    b.box(t, h, d * 0.62, sx * (w / 2 - t / 2), h / 2, -d / 2 + d * 0.31, COLORS.wall);
-    b.box(0.1, h, 0.1, sx * (w / 2 - 0.05), h / 2, d / 2 - 0.05, shade(zone.color, -0.1));
+    b.rbox(t, h, d * 0.62, sx * (w / 2 - t / 2), h / 2, -d / 2 + d * 0.31, COLORS.wall, 0.04);
+    b.rbox(0.14, h + 0.3, 0.14, sx * (w / 2 - 0.07), (h + 0.3) / 2, d / 2 - 0.07, deep, 0.05);
+    // 옆 벽 선반과 소품
+    const sxIn = sx * (w / 2 - t - 0.17);
+    b.box(0.34, 0.04, 1.2, sxIn, 1.45, -d / 2 + 0.85, COLORS.wood);
+    b.rbox(0.18, 0.24, 0.18, sxIn, 1.59, -d / 2 + 0.5, shade(zone.color, 0.12), 0.03);
+    b.rbox(0.14, 0.32, 0.22, sxIn, 1.63, -d / 2 + 0.85, 0xfff1c9, 0.02);
+    b.cylinder(0.08, 0.06, 0.16, sxIn, 1.55, -d / 2 + 1.2, 0xc9b79c, 8);
+    b.sphere(0.12, sxIn, 1.7, -d / 2 + 1.2, 0x6aa84f);
   }
-  b.box(w + 0.1, 0.6, 0.16, 0, h + 0.2, d / 2 - 0.08, zoneColor);
-  b.box(w - 2 * t, 0.22, 0.02, 0, 0.32, -d / 2 + t + 0.01, zoneColor);
+  // 간판 받침 (둥근 헤더)
+  b.rbox(w + 0.2, 0.66, 0.22, 0, h + 0.2, d / 2 - 0.08, zoneColor, 0.1);
+  b.box(w - 2 * t, 0.22, 0.02, 0, 0.34, -d / 2 + t + 0.01, zoneColor);
   // 안내 데스크
-  b.box(1.6, 0.92, 0.55, 0, 0.46 + 0.1, d / 2 - 0.75, zoneColor);
-  b.box(1.7, 0.05, 0.62, 0, 1.05, d / 2 - 0.75, COLORS.wall);
+  b.rbox(1.7, 0.94, 0.6, 0, 0.12 + 0.47, d / 2 - 0.8, zoneColor, 0.08);
+  b.rbox(1.8, 0.06, 0.68, 0, 1.08, d / 2 - 0.8, COLORS.wall, 0.03);
+  b.box(1.5, 0.12, 0.02, 0, 0.75, d / 2 - 0.49, COLORS.wall);
+  // 안내 책자 꽂이
+  const bx = -w / 2 + 0.55;
+  const bz = d / 2 - 0.55;
+  b.rbox(0.42, 1.1, 0.24, bx, 0.12 + 0.55, bz, COLORS.woodDark, 0.03);
+  for (let i = 0; i < 3; i++) b.box(0.32, 0.22, 0.02, bx, 0.55 + i * 0.3, bz + 0.13, [zone.color, 0xffffff, shade(zone.color, 0.2)][i]);
   // 화분
-  const px = w / 2 - 0.45;
-  b.cylinder(0.2, 0.16, 0.4, px, 0.3, d / 2 - 0.45, 0xc9b79c);
-  b.sphere(0.32, px, 0.75, d / 2 - 0.45, 0x6aa84f);
+  const px = w / 2 - 0.5;
+  b.rbox(0.42, 0.45, 0.42, px, 0.12 + 0.22, d / 2 - 0.5, 0xd9c7a8, 0.06);
+  b.sphere(0.34, px, 0.86, d / 2 - 0.5, 0x6aa84f);
+  b.sphere(0.24, px + 0.15, 1.05, d / 2 - 0.42, 0x7fb069);
+  // 입구 매트
+  b.box(1.6, 0.012, 0.6, 0, 0.006, d / 2 + 0.45, deep);
   addPropModel(b, booth.prop, zone.color, d);
 
   const bodyMat = vertexColorMaterial();
@@ -73,7 +96,7 @@ function createStandard(booth: Booth, zone: Zone): BoothObject {
   group.add(body);
 
   const sign = texturedPlane(signTexture(booth.name, zone.color), w * 0.95, 0.52);
-  sign.position.set(0, h + 0.2, d / 2 + 0.005);
+  sign.position.set(0, h + 0.2, d / 2 + 0.04);
   group.add(sign);
 
   const poster = texturedPlane(posterTexture(booth.name, PROP_ICON[booth.prop], zone.color, booth.audience || zone.name), 2.4, 1.8);
@@ -90,8 +113,8 @@ function createStandard(booth: Booth, zone: Zone): BoothObject {
 
 /** 데스크 위 작은 소품 (아이콘을 입체로 살짝 보여 주는 정도) */
 function addPropModel(b: MeshBuilder, prop: BoothProp, color: string, d: number) {
-  const y = 1.08;
-  const z = d / 2 - 0.75;
+  const y = 1.11;
+  const z = d / 2 - 0.8;
   switch (prop) {
     case "book":
       b.box(0.36, 0.06, 0.26, -0.45, y + 0.03, z, 0xe85d5d);

@@ -1,9 +1,11 @@
 import * as THREE from "three";
-import { BOOTH, CAMERA, COLORS } from "../config";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { BOOTH, CAMERA, COLORS, LIGHT } from "../config";
 import type { ExpoIndex } from "../data/load";
 import { createBooth, type BoothObject } from "./boothFactory";
+import { ShadowBlobs, addBalloons, addOverhead, addPeople, addPlazaFurniture, streetsOf } from "./decor";
 import { MeshBuilder, deg, texturedPlane, vertexColorMaterial } from "./geometry";
-import { signTexture, tint } from "./textures";
+import { floorTileTexture, signTexture, skyTexture, tint } from "./textures";
 
 export type TickFn = (dt: number) => void;
 
@@ -17,6 +19,7 @@ export class World {
   private ticks: TickFn[] = [];
   private clock = new THREE.Clock();
   private hovered: string | null = null;
+  private blobs = new ShadowBlobs();
   readonly lowPower: boolean;
 
   constructor(private container: HTMLElement, private index: ExpoIndex) {
@@ -25,7 +28,7 @@ export class World {
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, this.lowPower ? 1.75 : 2));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.05;
+    this.renderer.toneMappingExposure = LIGHT.exposure;
     this.renderer.shadowMap.enabled = !this.lowPower;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(this.renderer.domElement);
@@ -33,9 +36,15 @@ export class World {
     this.camera = new THREE.PerspectiveCamera(CAMERA.fovLandscape, 1, CAMERA.near, CAMERA.far);
     this.camera.rotation.order = "YXZ";
 
-    this.scene.background = new THREE.Color(COLORS.sky);
-    this.scene.fog = new THREE.Fog(COLORS.sky, 45, 130);
+    this.scene.background = skyTexture(COLORS.skyTop, COLORS.skyHorizon);
+    this.scene.fog = new THREE.Fog(COLORS.sky, 50, 140);
+    // 은은한 환경 반사: 단색 면이 플라스틱처럼 보이지 않게 한다
+    const pmrem = new THREE.PMREMGenerator(this.renderer);
+    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    this.scene.environmentIntensity = LIGHT.environment;
+    pmrem.dispose();
 
+    const { nodes } = index.data.layout;
     this.addLights();
     this.ground = this.addGround();
     this.addStreets();
@@ -44,6 +53,9 @@ export class World {
     this.addEntranceGate();
     this.addPlaza();
     this.addBooths();
+    addOverhead(this.scene, nodes);
+    addPeople(this.scene, index, this.blobs);
+    this.blobs.build(this.scene);
 
     window.addEventListener("resize", () => this.resize());
     this.resize();
@@ -91,29 +103,31 @@ export class World {
   }
 
   private addLights(): void {
-    this.scene.add(new THREE.HemisphereLight(0xfff8ee, 0xcbbfa8, 1.6));
-    const sun = new THREE.DirectionalLight(0xffffff, 1.9);
-    sun.position.set(-30, 50, 20);
+    this.scene.add(new THREE.HemisphereLight(0xfff4e2, 0xc9b291, LIGHT.hemisphere));
+    // 늦은 오후의 따뜻한 햇빛
+    const sun = new THREE.DirectionalLight(0xffe7c4, LIGHT.sun);
+    sun.position.set(-35, 45, 25);
     sun.target.position.set(0, 0, -40);
     if (this.renderer.shadowMap.enabled) {
       sun.castShadow = true;
-      sun.shadow.mapSize.set(2048, 2048);
+      sun.shadow.mapSize.set(4096, 4096);
       const s = sun.shadow.camera;
-      s.left = -60;
-      s.right = 60;
-      s.top = 60;
-      s.bottom = -60;
-      s.far = 160;
-      sun.shadow.bias = -0.0005;
+      s.left = -62;
+      s.right = 62;
+      s.top = 62;
+      s.bottom = -62;
+      s.far = 170;
+      sun.shadow.bias = -0.0004;
+      sun.shadow.normalBias = 0.03;
+      sun.shadow.radius = 3;
     }
     this.scene.add(sun, sun.target);
   }
 
   private addGround(): THREE.Mesh {
-    const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(260, 260),
-      new THREE.MeshStandardMaterial({ color: COLORS.ground, roughness: 1 }),
-    );
+    const tex = floorTileTexture(COLORS.ground, COLORS.groundLine, 4);
+    tex.repeat.set(260 / 8, 260 / 8);
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(260, 260), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.92 }));
     ground.rotation.x = -Math.PI / 2;
     ground.position.z = -40;
     ground.receiveShadow = true;
@@ -122,30 +136,31 @@ export class World {
     return ground;
   }
 
-  /** 노드 좌표로 통로를 깐다: 같은 z에 늘어선 지점은 동서 통로, x=0은 남북 대로 */
+  /** 통로는 테두리가 있는 카펫, 대로변에는 화분 나무 */
   private addStreets(): void {
-    const nodes = this.index.data.layout.nodes.filter((n) => !n.booth);
-    const rows = new Map<number, number[]>();
-    for (const n of nodes) {
-      if (n.x === 0) continue;
-      rows.set(n.z, [...(rows.get(n.z) ?? []), n.x]);
-    }
+    const { nodes } = this.index.data.layout;
     const b = new MeshBuilder();
-    for (const [z, xs] of rows) {
-      const min = Math.min(...xs, 0) - 3.5;
-      const max = Math.max(...xs, 0) + 3.5;
-      b.box(max - min, 0.02, 4.2, (min + max) / 2, 0.01, z, COLORS.street);
-    }
-    const zs = nodes.filter((n) => n.x === 0).map((n) => n.z);
+    const carpet = (cx: number, cz: number, w: number, d: number, alongX: boolean) => {
+      b.box(w, 0.02, d, cx, 0.01, cz, COLORS.street);
+      // 양쪽 테두리 띠
+      for (const s of [-1, 1]) {
+        if (alongX) b.box(w, 0.024, 0.18, cx, 0.012, cz + s * (d / 2 - 0.25), COLORS.streetEdge);
+        else b.box(0.18, 0.024, d, cx + s * (w / 2 - 0.25), 0.012, cz, COLORS.streetEdge);
+      }
+    };
+    for (const st of streetsOf(nodes)) carpet((st.minX + st.maxX) / 2, st.z, st.maxX - st.minX, 4.2, true);
+    const zs = nodes.filter((n) => n.x === 0 && !n.booth).map((n) => n.z);
     const zMin = Math.min(...zs) - 3;
-    b.box(4.2, 0.02, 3 - zMin, 0, 0.012, (3 + zMin) / 2, COLORS.street);
-    // 대로변 화분 나무
-    for (let z = -10; z > zMin + 4; z -= 9) {
-      if ([-20, -48, -72].some((rz) => Math.abs(rz - z) < 4)) continue;
-      for (const x of [-2.8, 2.8]) {
-        b.cylinder(0.45, 0.35, 0.5, x, 0.25, z, 0xc9b79c);
-        b.cylinder(0.08, 0.1, 1.2, x, 1.0, z, 0x7a5232, 6);
-        b.sphere(0.75, x, 2.0, z, 0x7fb069);
+    carpet(0, (3 + zMin) / 2, 4.2, 3 - zMin, false);
+
+    for (let z = -14; z > zMin + 4; z -= 9) {
+      if ([-20, -48, -72].some((rz) => Math.abs(rz - z) < 5)) continue;
+      for (const x of [-2.9, 2.9]) {
+        b.rbox(0.9, 0.55, 0.9, x, 0.28, z, 0xd9c7a8, 0.08);
+        b.cylinder(0.07, 0.1, 1.3, x, 1.1, z, 0x7a5232, 6);
+        b.sphere(0.7, x, 2.1, z, 0x7fb069);
+        b.sphere(0.5, x + 0.3, 1.85, z + 0.15, 0x8cbf74);
+        this.blobs.add(x, z, 1.8, 1.8);
       }
     }
     const mesh = b.build(vertexColorMaterial());
@@ -169,7 +184,7 @@ export class World {
         minZ = Math.min(minZ, p.z - d / 2 - 0.8);
         maxZ = Math.max(maxZ, p.z + d / 2 + 0.8);
       }
-      floors.box(maxX - minX, 0.015, maxZ - minZ, (minX + maxX) / 2, 0.006, (minZ + maxZ) / 2, tint(zone.color, 0xffffff, 0.72));
+      floors.box(maxX - minX, 0.015, maxZ - minZ, (minX + maxX) / 2, 0.006, (minZ + maxZ) / 2, tint(zone.color, 0xffffff, 0.74));
 
       // 대로 쪽 끝에 존 배너 (통로 위를 가로지름)
       const entry = layout.nodes.find((n) => n.id === zone.entryNode);
@@ -187,7 +202,10 @@ export class World {
   private addBanner(text: string, color: string, x: number, z: number, rotY: number, sub?: string): void {
     const g = new THREE.Group();
     const b = new MeshBuilder();
-    for (const s of [-1, 1]) b.cylinder(0.08, 0.08, 4.4, s * 2.7, 2.2, 0, 0x4b4038, 8);
+    for (const s of [-1, 1]) {
+      b.cylinder(0.08, 0.08, 4.4, s * 2.7, 2.2, 0, 0x4b4038, 8);
+      b.sphere(0.13, s * 2.7, 4.45, 0, color);
+    }
     b.box(5.6, 0.08, 0.08, 0, 4.36, 0, 0x4b4038);
     g.add(b.build(vertexColorMaterial()));
     const tex = signTexture(text, color, { aspect: 5.2 / 0.95, sub });
@@ -218,48 +236,47 @@ export class World {
     const g = new THREE.Group();
     const b = new MeshBuilder();
     for (const s of [-1, 1]) {
-      b.box(0.9, 4, 0.9, s * 3.6, 2, 0, 0xfffaf2);
-      b.box(1.0, 0.3, 1.0, s * 3.6, 0.15, 0, 0x7c3aed);
+      b.rbox(0.9, 4, 0.9, s * 3.6, 2, 0, 0xfffaf2, 0.12);
+      b.rbox(1.1, 0.35, 1.1, s * 3.6, 0.17, 0, 0x7c3aed, 0.08);
+      b.rbox(1.0, 0.18, 1.0, s * 3.6, 3.95, 0, 0x7c3aed, 0.06);
+      addBalloons(b, s * 4.5, 3.6, 0.2);
+      b.box(0.015, 1.6, 0.015, s * 4.3, 2.6, 0.1, 0x9a8f80);
     }
-    b.box(8.4, 1.3, 0.7, 0, 4.4, 0, 0xfffaf2);
+    b.rbox(8.6, 1.4, 0.8, 0, 4.4, 0, 0xfffaf2, 0.18);
+    // 환영 카펫
+    b.box(3.4, 0.03, 9, 0, 0.03, 4.6, 0xb4472e);
+    b.box(3.0, 0.035, 8.6, 0, 0.032, 4.6, 0xd2603f);
     const body = b.build(vertexColorMaterial());
     body.castShadow = true;
+    body.receiveShadow = true;
     g.add(body);
     const front = texturedPlane(signTexture("사역박람회", "#7c3aed", { aspect: 7.8 / 1.1, sub: "여기서 시작해요" }), 7.8, 1.1);
-    front.position.set(0, 4.4, 0.36);
+    front.position.set(0, 4.4, 0.41);
     const back = texturedPlane(signTexture("사역박람회", "#7c3aed", { aspect: 7.8 / 1.1, sub: "함께해 주셔서 고마워요" }), 7.8, 1.1);
-    back.position.set(0, 4.4, -0.36);
+    back.position.set(0, 4.4, -0.41);
     back.rotation.y = Math.PI;
     g.add(front, back);
     g.position.set(0, 0, -10);
     this.scene.add(g);
+    for (const s of [-1, 1]) this.blobs.add(s * 3.6, -10, 1.8, 1.8);
   }
 
   private addPlaza(): void {
     const node = this.index.data.layout.nodes.find((n) => n.id === "n-plaza-center");
     if (!node) return;
-    const disc = new THREE.Mesh(new THREE.CircleGeometry(6.5, 48), new THREE.MeshStandardMaterial({ color: 0xf3ede2, roughness: 1 }));
-    disc.rotation.x = -Math.PI / 2;
-    disc.position.set(node.x, 0.02, node.z);
+    const b = new MeshBuilder();
+    b.cylinder(7.2, 7.2, 0.03, node.x, 0.02, node.z, 0xe9d9bd, 48);
+    b.cylinder(6.6, 6.6, 0.035, node.x, 0.025, node.z, 0xf6eddc, 48);
+    // 방사형 무늬
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      b.box(0.12, 0.04, 6.2, node.x + Math.sin(a) * 3.3, 0.028, node.z + Math.cos(a) * 3.3, 0xe3cfae, a);
+    }
+    const disc = b.build(vertexColorMaterial());
     disc.receiveShadow = true;
     disc.userData.ground = true;
     this.scene.add(disc);
-
-    // 가운데 안내탑: 바로 앞에 서면 시야를 가리므로 광장 북동쪽에 둔다
-    const b = new MeshBuilder();
-    b.cylinder(0.9, 1.1, 0.4, 4.5, 0.2, node.z - 4.5, 0xd8cdb8, 16);
-    b.box(1.1, 3.4, 1.1, 4.5, 2.1, node.z - 4.5, 0xfffaf2);
-    const tower = b.build(vertexColorMaterial());
-    tower.castShadow = true;
-    this.scene.add(tower);
-    const tex = signTexture("중앙 광장", "#334155", { aspect: 1.05 / 0.6 });
-    for (let i = 0; i < 4; i++) {
-      const p = texturedPlane(tex, 1.05, 0.6);
-      const a = (i * Math.PI) / 2;
-      p.position.set(4.5 + Math.sin(a) * 0.56, 3.2, node.z - 4.5 + Math.cos(a) * 0.56);
-      p.rotation.y = a;
-      this.scene.add(p);
-    }
+    addPlazaFurniture(this.scene, node.x, node.z, this.blobs);
   }
 
   private addBooths(): void {
@@ -270,6 +287,8 @@ export class World {
       this.booths.set(booth.id, obj);
       this.boothPickables.push(...obj.pickables);
       this.scene.add(obj.group);
+      const size = BOOTH[booth.size];
+      this.blobs.add(place.x, place.z, size.w + 1.6, size.d + 1.6, deg(place.rotY), "rect");
     }
   }
 }

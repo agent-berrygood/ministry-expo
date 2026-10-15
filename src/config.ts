@@ -29,7 +29,7 @@ export const MOVE = {
   /** 바닥 클릭 시 이 각도 안에 있는 연결 지점으로만 이동 */
   groundClickMaxAngle: (60 * Math.PI) / 180,
   /** 이보다 가까운 이웃은 화살표 없이 건너뛰고 그 다음 지점을 가리킨다 */
-  passThroughDistance: 1.5,
+  passThroughDistance: 2,
   /** 방향 차이가 이보다 작은 화살표는 하나로 합친다 */
   arrowMergeAngle: (25 * Math.PI) / 180,
   /** 이보다 가까운 부스 시점으로 가는 화살표는 부스 건물 쪽을 가리킨다 */
@@ -39,8 +39,8 @@ export const MOVE = {
 export const ARROW = {
   distance: 3.0,
   size: 0.55,
-  /** 통로 바닥(최고 0.022m)보다 위에 둔다 */
-  y: 0.05,
+  /** 바닥 깔개(입구 카펫 최고 0.05m)보다 위에 둔다 */
+  y: 0.08,
 };
 
 export const BOOTH = {
@@ -55,10 +55,35 @@ export const STEAM = {
   activeDistance: 25,
 };
 
+export const LIGHT = {
+  exposure: 1.0,
+  environment: 0.45,
+  hemisphere: 1.15,
+  sun: 2.5,
+};
+
+export const DECOR = {
+  trussY: 5.6,
+  /** 통로 중심에서 트러스 레일까지 */
+  trussHalfWidth: 2.3,
+  crossEvery: 5,
+  flagSpacing: 0.55,
+  blobY: 0.035,
+  /** 이동 지점에서 이 거리 안에는 사람을 세우지 않는다 */
+  personKeepOut: 1.2,
+  flagColors: [0xf97316, 0xfacc15, 0x22c55e, 0x0ea5e9, 0xa855f7, 0xec4899, 0xfffaf0],
+  shirtColors: [0xe76f51, 0xf4a261, 0x2a9d8f, 0x457b9d, 0xe9c46a, 0x8ecae6, 0xb5838d, 0x6d6875, 0xffffff, 0x90be6d],
+  skinColors: [0xf1c27d, 0xe0ac69, 0xf6d5b8, 0xd8a47f],
+};
+
 export const COLORS = {
-  sky: 0xf4efe6,
-  ground: 0xe9e3d8,
-  street: 0xd9d1c3,
+  sky: 0xfdf3e4,
+  skyTop: "#f6d7b0",
+  skyHorizon: "#fdf3e4",
+  ground: "#efe7da",
+  groundLine: "#ddd2c0",
+  street: 0xd8b48f,
+  streetEdge: 0xb98a63,
   wall: 0xfbfaf7,
   wood: 0xb07a4a,
   woodDark: 0x7a5232,

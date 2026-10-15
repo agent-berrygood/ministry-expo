@@ -28,6 +28,15 @@ body {
   height: 100%;
 }
 
+/* 화면 가장자리를 은은하게 눌러 시선을 가운데로 모은다 (GPU 부담 없는 CSS 비네트) */
+#stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(70, 45, 20, 0.22) 100%);
+}
+
 #ui {
   position: fixed;
   inset: 0;

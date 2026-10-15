@@ -171,6 +171,80 @@ export function softDotTexture(): THREE.CanvasTexture {
   return finish(canvas);
 }
 
+/** 하늘: 위는 살구빛, 지평선은 크림색 */
+export function skyTexture(top: string, horizon: string): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 4;
+  canvas.height = 256;
+  const ctx = canvas.getContext("2d")!;
+  const g = ctx.createLinearGradient(0, 0, 0, 256);
+  g.addColorStop(0, top);
+  g.addColorStop(0.62, horizon);
+  g.addColorStop(1, horizon);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 4, 256);
+  return finish(canvas);
+}
+
+/** 바닥 타일: 은은한 줄눈과 타일마다 아주 약한 색 차이 */
+export function floorTileTexture(base: string, line: string, tiles = 4): THREE.CanvasTexture {
+  const size = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d")!;
+  const step = size / tiles;
+  const c = new THREE.Color(base);
+  for (let i = 0; i < tiles; i++) {
+    for (let j = 0; j < tiles; j++) {
+      const v = ((i * 7 + j * 13) % 5) / 5 - 0.4;
+      const t = c.clone().offsetHSL(0, 0, v * 0.02);
+      ctx.fillStyle = `#${t.getHexString()}`;
+      ctx.fillRect(i * step, j * step, step, step);
+    }
+  }
+  ctx.strokeStyle = line;
+  ctx.lineWidth = 2;
+  for (let i = 0; i <= tiles; i++) {
+    ctx.beginPath();
+    ctx.moveTo(i * step, 0);
+    ctx.lineTo(i * step, size);
+    ctx.moveTo(0, i * step);
+    ctx.lineTo(size, i * step);
+    ctx.stroke();
+  }
+  const tex = finish(canvas);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.anisotropy = 8;
+  return tex;
+}
+
+/** 바닥에 까는 부드러운 그림자. 흰색=불투명, 알파맵으로 쓴다. */
+export function blobShadowTexture(shape: "circle" | "rect"): THREE.CanvasTexture {
+  const s = 128;
+  const canvas = document.createElement("canvas");
+  canvas.width = s;
+  canvas.height = s;
+  const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, s, s);
+  if (shape === "circle") {
+    const g = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+    g.addColorStop(0, "#fff");
+    g.addColorStop(0.45, "#bbb");
+    g.addColorStop(1, "#000");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, s, s);
+  } else {
+    ctx.filter = "blur(12px)";
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(s * 0.16, s * 0.16, s * 0.68, s * 0.68);
+    ctx.filter = "none";
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  return tex;
+}
+
 export function shade(hex: string, amount: number): string {
   const c = new THREE.Color(hex);
   const hsl = { h: 0, s: 0, l: 0 };
