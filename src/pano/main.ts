@@ -9,6 +9,7 @@ import { h } from "../ui/dom";
 
 interface Pano {
   id: string;
+  node: string;
   title: string;
   x: number;
   z: number;
@@ -57,6 +58,10 @@ const discMat = new THREE.MeshBasicMaterial({ color: 0x1f1a14, transparent: true
 let yaw = 0;
 let pitch = (-6 * Math.PI) / 180;
 let panos: Pano[] = [];
+// 길 그래프(layout.json links): 화살표는 걸어서 이어진 지점에만 놓는다
+let links = new Map<string, string[]>();
+let boothOf = new Map<string, string>();
+const boothLink = h("a", { class: "btn btn-primary", hidden: true }, "부스 자세히 보기");
 let current: Pano | null = null;
 let busy = false;
 const loader = new THREE.TextureLoader();
@@ -67,7 +72,7 @@ ui.append(
     "div",
     { class: "hud-top" },
     h("div", { class: "hud-title" }, h("strong", {}, "사역박람회 · 실사 시안"), title),
-    h("div", { class: "hud-actions" }, h("a", { class: "btn", href: `${base}#/` }, "기존 3D로 보기")),
+    h("div", { class: "hud-actions" }, boothLink, h("a", { class: "btn", href: `${base}#/` }, "기존 3D로 보기")),
   ),
   h("div", { class: "hint", role: "status" }, "Blender로 렌더한 360° 사진이에요. 끌어서 둘러보고 바닥 화살표로 이동하세요"),
 );
@@ -102,6 +107,9 @@ async function show(p: Pano, faceYawDeg?: number): Promise<void> {
   current = p;
   if (faceYawDeg !== undefined) yaw = THREE.MathUtils.degToRad(faceYawDeg);
   title.replaceChildren(h("i"), p.title);
+  const booth = boothOf.get(p.node);
+  boothLink.hidden = !booth;
+  if (booth) boothLink.href = `${base}#/booth/${encodeURIComponent(booth)}`;
   buildArrows();
   const t0 = performance.now();
   await new Promise<void>((done) => {
@@ -119,8 +127,10 @@ async function show(p: Pano, faceYawDeg?: number): Promise<void> {
 function buildArrows(): void {
   arrows.clear();
   if (!current) return;
+  const near = links.get(current.node);
   for (const p of panos) {
     if (p === current) continue;
+    if (near && !near.includes(p.node)) continue;
     const dir = Math.atan2(-(p.x - current.x), -(p.z - current.z));
     const g = new THREE.Group();
     g.position.set(-Math.sin(dir) * 3, -1.55, -Math.cos(dir) * 3);
@@ -193,11 +203,18 @@ renderer.setAnimationLoop(() => {
   renderer.render(scene, camera);
 });
 
-fetch(`${base}pano/manifest.json`)
-  .then((r) => r.json() as Promise<Pano[]>)
-  .then((list) => {
+Promise.all([
+  fetch(`${base}pano/manifest.json`).then((r) => r.json() as Promise<Pano[]>),
+  fetch(`${base}data/layout.json`)
+    .then((r) => r.json() as Promise<{ nodes: { id: string; links: string[]; booth?: string }[] }>)
+    .catch(() => null),
+])
+  .then(([list, layout]) => {
     panos = list;
-    const start = list[0];
+    // 사진이 모든 지점에 있을 때만 길 그래프를 쓴다 (몇 장뿐인 시안이면 전부 잇는다)
+    if (layout) boothOf = new Map(layout.nodes.flatMap((n) => (n.booth ? [[n.id, n.booth] as [string, string]] : [])));
+    if (layout && list.length >= layout.nodes.length) links = new Map(layout.nodes.map((n) => [n.id, n.links]));
+    const start = list.find((p) => p.node === "entrance") ?? list[0];
     if (start) show(start, start.yaw);
   })
   .catch(() => title.replaceChildren(h("i"), "360° 사진이 아직 없어요"));

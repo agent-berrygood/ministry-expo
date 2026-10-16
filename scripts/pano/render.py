@@ -14,9 +14,13 @@ import sys
 
 import bpy
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import kit  # noqa: E402
+
 args = sys.argv[sys.argv.index("--") + 1 :]
 ROOT, SPOTS, WIDTH, SAMPLES = args[0], json.loads(args[1]), int(args[2]), int(args[3])
 EYE = 1.6
+ASSETS = os.environ.get("RENDER_ASSETS_DIR", "")
 OUT = os.path.join(ROOT, "bake", "pano")
 os.makedirs(OUT, exist_ok=True)
 
@@ -201,6 +205,12 @@ for o in objs:
                 b.inputs["Roughness"].default_value = 0.75 if k != "billboard" else 1.0
                 if "Specular IOR Level" in b.inputs and k == "billboard":
                     b.inputs["Specular IOR Level"].default_value = 0.0
+
+# ---------- 실사 키트: 부스·트러스·화분·의자 (scripts/pano/kit.py) ----------
+kit.build_all(ROOT, objs, ASSETS, log)
+# 실내 전시홀: 하늘 대신 천장 조명과 부스 조명으로 비춘다
+kit.setup_indoor_world(world)
+scene.view_settings.exposure = float(os.environ.get("PANO_EXPOSURE", "-0.7"))
 
 # ---------- 모양 다듬기: 겹친 꼭짓점 합치기 → 모서리 둥글게 → 부드러운 음영 ----------
 # 두께 몇 cm짜리 바닥재는 점을 합치거나 둥글리거나 부드럽게 칠하면 음영이 깨져 검게 나오므로 그대로 둔다

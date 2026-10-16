@@ -52,6 +52,10 @@ button {
   color: inherit;
 }
 
+.btn[hidden] {
+  display: none;
+}
+
 .btn {
   min-height: var(--touch);
   padding: 0 var(--space-4);

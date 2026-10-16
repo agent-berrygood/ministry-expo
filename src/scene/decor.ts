@@ -141,6 +141,9 @@ export function addOverhead(scene: THREE.Scene, nodes: NavNode[]): void {
   // 깃발은 삼각형 수백 개라 빛 지도에 넣지 않는다 (구운 화면에서는 색만 칠한다)
   const flagMesh = flags.build(vertexColorMaterial({ side: THREE.DoubleSide, roughness: 0.95 }));
   const bulbMesh = bulbs.build(glowMaterial());
+  // 실사 렌더(scripts/pano)가 이름으로 골라낸다
+  flagMesh.name = "overhead-flags";
+  bulbMesh.name = "overhead-bulbs";
   scene.add(markBake(frameMesh, "atlas", "overhead-frame"), flagMesh, bulbMesh);
 }
 

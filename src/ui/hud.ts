@@ -23,6 +23,7 @@ export class Hud {
         h(
           "div",
           { class: "hud-actions" },
+          h("a", { class: "btn btn-primary", href: `${import.meta.env.BASE_URL}pano.html` }, "실사 360° 보기"),
           h("button", { class: "btn", onclick: () => navigate({ type: "list" }) }, "목록 보기"),
           h("button", { class: "btn", onclick: () => this.home() }, "입구로"),
         ),

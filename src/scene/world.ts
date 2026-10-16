@@ -155,6 +155,7 @@ export class World {
     ground.position.z = -40;
     ground.receiveShadow = true;
     ground.userData.ground = true;
+    ground.name = "ground-outer";
     this.scene.add(ground);
 
     // 박람회장 영역 바닥판: 바닥 빛 지도를 입히는 곳. 바깥 바닥과 타일 무늬가 이어지도록 UV를 같은 식으로 계산한다
