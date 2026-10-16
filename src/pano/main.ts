@@ -2,6 +2,9 @@ import * as THREE from "three";
 import "../styles/tokens.css";
 import "../styles/app.css";
 import { LOOK } from "../config";
+import { ExpoIndex, loadExpoData } from "../data/load";
+import { events } from "../events";
+import { Minimap } from "../ui/minimap";
 import { h } from "../ui/dom";
 
 // 실사 시안 (거리뷰 방식): Blender로 렌더한 360° 사진(public/pano/)을 둘러보고 화살표로 지점을 오간다.
@@ -61,6 +64,27 @@ let panos: Pano[] = [];
 // 길 그래프(layout.json links): 화살표는 걸어서 이어진 지점에만 놓는다
 let links = new Map<string, string[]>();
 let boothOf = new Map<string, string>();
+let index: ExpoIndex | null = null;
+const PLACE_NAMES: Record<string, string> = {
+  entrance: "입구",
+  "n-plaza-welcome": "환영 데스크",
+  "n-plaza-center": "중앙 광장",
+  "n-plaza-madang": "나눔마당",
+};
+/** 지점 이름: 부스 이름 > 광장 이름 > 가장 가까운 부스가 속한 존의 통로 */
+function placeName(p: Pano): string {
+  if (!index) return PLACE_NAMES[p.node] ?? p.title;
+  const booth = index.boothById.get(boothOf.get(p.node) ?? "");
+  if (booth) return booth.name;
+  if (PLACE_NAMES[p.node]) return PLACE_NAMES[p.node];
+  let best: { name: string; d: number } | null = null;
+  for (const b of index.data.booths) {
+    const pl = index.data.layout.booths[b.id];
+    const d = pl ? Math.hypot(pl.x - p.x, pl.z - p.z) : Infinity;
+    if (!best || d < best.d) best = { name: index.zoneOf(b).name, d };
+  }
+  return best ? `${best.name} 통로` : "통로";
+}
 const boothLink = h("a", { class: "btn btn-primary", hidden: true }, "부스 자세히 보기");
 let current: Pano | null = null;
 let busy = false;
@@ -106,7 +130,7 @@ async function show(p: Pano, faceYawDeg?: number): Promise<void> {
   fm.opacity = 0;
   current = p;
   if (faceYawDeg !== undefined) yaw = THREE.MathUtils.degToRad(faceYawDeg);
-  title.replaceChildren(h("i"), p.title);
+  title.replaceChildren(h("i"), placeName(p));
   const booth = boothOf.get(p.node);
   boothLink.hidden = !booth;
   if (booth) boothLink.href = `${base}#/booth/${encodeURIComponent(booth)}`;
@@ -122,6 +146,12 @@ async function show(p: Pano, faceYawDeg?: number): Promise<void> {
     step();
   });
   busy = false;
+}
+
+/** 지금 자리에서 그쪽을 바라보며 이동한다 */
+function go(to: Pano): void {
+  if (!current || to === current) return;
+  show(to, THREE.MathUtils.radToDeg(Math.atan2(-(to.x - current.x), -(to.z - current.z))));
 }
 
 function buildArrows(): void {
@@ -176,7 +206,7 @@ el.addEventListener("pointerup", (e) => {
   ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
   const hit = ray.intersectObjects(arrows.children, true).find((i) => i.object.userData.to);
   const to = panos.find((p) => p.id === hit?.object.userData.to);
-  if (to && current) show(to, THREE.MathUtils.radToDeg(Math.atan2(-(to.x - current.x), -(to.z - current.z))));
+  if (to) go(to);
 });
 el.addEventListener(
   "wheel",
@@ -198,8 +228,17 @@ function resize(): void {
 window.addEventListener("resize", resize);
 resize();
 
+let lastPose = "";
 renderer.setAnimationLoop(() => {
   camera.rotation.set(pitch, yaw, 0);
+  // 미니맵에 위치와 바라보는 방향을 알린다 (바뀔 때만)
+  if (current) {
+    const key = `${current.id}:${yaw.toFixed(2)}`;
+    if (key !== lastPose) {
+      lastPose = key;
+      events.emit("nav:pose", { x: current.x, z: current.z, yaw });
+    }
+  }
   renderer.render(scene, camera);
 });
 
@@ -216,5 +255,16 @@ Promise.all([
     if (layout && list.length >= layout.nodes.length) links = new Map(layout.nodes.map((n) => [n.id, n.links]));
     const start = list.find((p) => p.node === "entrance") ?? list[0];
     if (start) show(start, start.yaw);
+    // 미니맵: 누른 곳의 360° 사진으로 바로 간다
+    loadExpoData()
+      .then((data) => {
+        index = new ExpoIndex(data);
+        if (current) title.replaceChildren(h("i"), placeName(current));
+        new Minimap(ui, index, (nodeId) => {
+          const to = panos.find((p) => p.node === nodeId);
+          if (to) go(to);
+        });
+      })
+      .catch(() => undefined);
   })
   .catch(() => title.replaceChildren(h("i"), "360° 사진이 아직 없어요"));

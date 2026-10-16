@@ -601,10 +601,8 @@ def build_all(root, objs, assets_dir, log):
             o.data.materials.clear()
             o.data.materials.append(STEEL())
 
-    # 공 모양 나무를 지우고 실사 화분 식물을 놓는다
-    for o in objs:
-        if o.name.startswith(("surface:streets-planters:", "surface:plaza-furniture:")):
-            delete_faces_by_color(o, lambda c: any(near(c, t) for t in TREE_COLORS))
+    # 웹의 화단 상자·원형 받침·벤치는 숨기고, 바닥에 실사 화분만 둔다
+    hide(("surface:streets-planters:", "surface:plaza-furniture:"))
     if plant_big:
         zs = [nn["z"] for nn in layout["nodes"] if nn["x"] == 0 and not nn.get("booth")]
         zmin = min(zs) - 3
@@ -612,8 +610,9 @@ def build_all(root, objs, assets_dir, log):
         while z > zmin + 4:
             if not any(abs(rz - z) < 5 for rz in (-20, -48, -72)):
                 for x in (-2.9, 2.9):
-                    place_asset(plant_big, W(x, 0.55, z), 1.5, rot_z=z)
+                    place_asset(plant_big, W(x, 0, z), 1.6, rot_z=z)
             z -= 9
-        center = next(nn for nn in layout["nodes"] if nn["id"] == "n-plaza-center")
+    center = next(nn for nn in layout["nodes"] if nn["id"] == "n-plaza-center")
+    if plant_big:
         for sx, sz in ((-1, -1), (1, -1), (-1, 1), (1, 1)):
-            place_asset(plant_big, W(center["x"] + sx * 4.6, 0.56, center["z"] + sz * 4.6), 2.2, rot_z=sx + sz)
+            place_asset(plant_big, W(center["x"] + sx * 4.6, 0, center["z"] + sz * 4.6), 2.0, rot_z=sx + sz)

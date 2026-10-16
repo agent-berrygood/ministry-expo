@@ -15,7 +15,12 @@ export class Minimap {
   private ox = 0;
   private oz = 0;
 
-  constructor(root: HTMLElement, private index: ExpoIndex) {
+  /** onPick: 누른 곳을 직접 처리할 때 (실사 360° 화면). 없으면 본 앱의 라우터로 이동한다 */
+  constructor(
+    root: HTMLElement,
+    private index: ExpoIndex,
+    private onPick?: (nodeId: string) => void,
+  ) {
     this.el.append(this.canvas);
     root.append(this.el);
     this.ctx = this.canvas.getContext("2d")!;
@@ -123,7 +128,11 @@ export class Minimap {
         bestBooth = id;
       }
     }
-    if (bestBooth) return navigate({ type: "booth", id: bestBooth });
+    if (bestBooth) {
+      const node = this.index.boothNode.get(bestBooth);
+      if (this.onPick) return void (node && this.onPick(node));
+      return navigate({ type: "booth", id: bestBooth });
+    }
 
     let bestNode: string | null = null;
     bestD = Infinity;
@@ -135,7 +144,8 @@ export class Minimap {
         bestNode = n.id;
       }
     }
-    if (bestNode) {
+    if (bestNode && this.onPick) this.onPick(bestNode);
+    else if (bestNode) {
       navigate({ type: "home" });
       events.emit("nav:goto", { nodeId: bestNode });
     }
