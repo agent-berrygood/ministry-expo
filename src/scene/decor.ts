@@ -208,17 +208,6 @@ export function addPeople(scene: THREE.Scene, index: ExpoIndex, blobs: ShadowBlo
   // 대로
   for (let z = -16; z > -76; z -= DECOR.walkerGap + 2 + rand() * DECOR.walkerGap) person((rand() < 0.5 ? -1 : 1) * (1.6 + rand() * 0.4), z, rand() * Math.PI * 2);
 
-  // 나눔마당 상에 둘러앉은 사람들
-  for (const id of ["joy-sharing", "warm-meal"]) {
-    const p = index.data.layout.booths[id];
-    if (!p) continue;
-    const tz = p.z + BOOTH.wide.d / 2 + 1.6;
-    for (const tx of [-2.2, 2.2]) {
-      if (rand() < 0.5) person(p.x + tx - 0.9, tz + 0.05, deg(90), rand() < 0.3);
-      if (rand() < 0.4) person(p.x + tx + 0.9, tz - 0.05, deg(-90));
-    }
-  }
-
   scene.add(markBake(b.build(vertexColorMaterial({ roughness: 0.9 })), "atlas", "people"));
 }
 
